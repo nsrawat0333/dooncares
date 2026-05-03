@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akash House Keeping & Cleaning Services</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                Akash<span class="logo-highlight">Cleaning.</span>
+            </div>
+            <div class="nav-links">
+                <a href="#services">Services</a>
+                <a href="#gallery">Our Work</a>
+                <a href="#partner" class="partner-link">Partner With Us</a>
+                <button id="authBtn" class="btn-auth"><i class="fa-regular fa-user"></i> Sign In</button>
+                <div id="userInfo" class="user-info hidden">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <button id="logoutBtn" class="btn-text">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Modern Split Hero Section -->
+    <header class="hero-modern">
+        <div class="hero-content-left">
+            <div class="hero-badge">Dehradun's Premium Service</div>
+            <h1>Spotless Homes,<br>Effortless Living.</h1>
+            <p class="subtitle">Experience the finest professional cleaning, maintenance, and repair services tailored
+                to your lifestyle. Trusted by 1500+ homes in Dehradun.</p>
+            <div class="hero-buttons">
+                <a href="#booking" class="btn-primary large-btn shadow-pulse">Book Your Service</a>
+                <a href="#gallery" class="btn-outline large-btn">See Our Work</a>
+            </div>
+            <div class="trust-points-dark">
+                <span><i class="fa-solid fa-medal"></i> Top Rated Staff</span>
+                <span><i class="fa-solid fa-shield-halved"></i> Background Checked</span>
+                <span><i class="fa-solid fa-clock"></i> On-Time Guarantee</span>
+            </div>
+        </div>
+        <div class="hero-image-right">
+            <!-- Using the user's provided real image of the team/cleaning -->
+            <img src="assets/hero.jpg" alt="Akash Cleaning Team at Work" class="hero-img-main"
+                onerror="this.src='https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80'">
+            <div class="experience-badge">
+                <div class="exp-number">5+</div>
+                <div class="exp-text">Years of<br>Excellence</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-box">
+                <h3 class="counter" data-target="1500">1500</h3>
+                <p>Homes Serviced</p>
+            </div>
+            <div class="stat-box">
+                <h3 class="counter" data-target="98">98</h3>
+                <p>% Satisfaction</p>
+            </div>
+            <div class="stat-box">
+                <h3 class="counter" data-target="50">50</h3>
+                <p>Expert Professionals</p>
+            </div>
+            <div class="stat-box">
+                <h3>4.9<i class="fa-solid fa-star"
+                        style="color: var(--accent); font-size: 1.5rem; margin-left:5px;"></i></h3>
+                <p>Customer Rating</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services-section">
+        <div class="section-header">
+            <h2>Our Expertise</h2>
+            <p>Curated services using state-of-the-art equipment</p>
+        </div>
+
+        <!-- Cleaning Services -->
+        <div class="service-category">
+            <div class="category-header">
+                <h3>Cleaning Solutions</h3>
+                <div class="scroll-hint">Swipe <i class="fa-solid fa-arrow-right-long"></i></div>
+            </div>
+            <div class="horizontal-scroll">
+                <div class="service-card" onclick="selectService('Carpet Cleaning')">
+                    <div class="img-wrapper">
+                        <!-- Using user's real carpet cleaning image -->
+                        <img src="assets/carpet_cleaning.jpg" alt="Carpet Cleaning" class="service-img"
+                            onerror="this.src='https://images.unsplash.com/photo-1558904541-efa843a96f09?w=500&q=80'">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Carpet Cleaning</h4>
+                        <p>Deep vacuuming and shampooing to restore your carpets.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Sofa Cleaning')">
+                    <div class="img-wrapper">
+                        <!-- Using user's real sofa cleaning image -->
+                        <img src="assets/sofa_cleaning.jpg" alt="Sofa Cleaning" class="service-img"
+                            onerror="this.src='https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=500&q=80'">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Sofa & Upholstery Care</h4>
+                        <p>Advanced stain removal and fabric rejuvenation.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Deep Cleaning')">
+                    <div class="img-wrapper">
+                        <img src="assets/deep_cleaning.jpg"
+                            alt="Deep Cleaning" class="service-img">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Full Home Deep Clean</h4>
+                        <p>Intensive top-to-bottom cleaning for absolute hygiene.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Washroom Cleaning')">
+                    <div class="img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500&q=80"
+                            alt="Washroom Cleaning" class="service-img">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Washroom Detail</h4>
+                        <p>Complete sanitization and hard-water stain removal.</p>
+                    </div>
+                </div>
+                <div class="scroll-spacer"></div>
+            </div>
+        </div>
+
+        <!-- Maintenance & Repair Services -->
+        <div class="service-category mt-4">
+            <div class="category-header">
+                <h3>Maintenance & Repairs</h3>
+            </div>
+            <div class="horizontal-scroll">
+                <div class="service-card" onclick="selectService('carpet_cleaning')">
+                    <div class="img-wrapper">
+                        <!-- Using user's real sewer/drain cleaning image -->
+                        <img src="assets/drainage_cleaning.jpg" alt="carpet_cleaning" class="service-img"
+                            onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&q=80'">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Drainage & Sewer</h4>
+                        <p>Professional unclogging and deep pipe cleaning.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Plumbing')">
+                    <div class="img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&q=80"
+                            alt="Plumbing" class="service-img">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Plumbing Experts</h4>
+                        <p>Rapid response for leaks, fixtures, and pipe repairs.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Electrician')">
+                    <div class="img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=500&q=80"
+                            alt="Electrician" class="service-img">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Electrical Safe</h4>
+                        <p>Certified electricians for wiring and appliance installs.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="selectService('Water Tank Cleaning')">
+                    <div class="img-wrapper">
+                        <img src="assets/tank_cleaning.jpg"
+                            alt="Tank Cleaning" class="service-img">
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Tank Sanitization</h4>
+                        <p>Thorough cleaning of overhead & underground reservoirs.</p>
+                    </div>
+                </div>
+                <div class="scroll-spacer"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real Gallery / Proof of Work Section -->
+    <section id="gallery" class="gallery-section">
+        <div class="section-header">
+            <h2>Real Results in Dehradun</h2>
+            <p>Don't just take our word for it. See our team in action.</p>
+        </div>
+        <div class="gallery-masonry">
+            <div class="gallery-item large">
+                <img src="assets/carpet_cleaning.jpg" alt="Carpet Cleaning Work"
+                    onerror="this.src='https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80'">
+                <div class="gallery-caption">Carpet Revitalization</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/sofa_cleaning.jpg" alt="Sofa Cleaning Work"
+                    onerror="this.src='https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=500&q=80'">
+                <div class="gallery-caption">Deep Sofa Shampooing</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/drainage_cleaning.jpg" alt="Drainage Cleaning Work"
+                    onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&q=80'">
+                <div class="gallery-caption">Heavy Duty Drain Cleaning</div>
+            </div>
+            <div class="gallery-item large">
+                <img src="assets/team.jpg" alt="Our Professional Team"
+                    onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'">
+                <div class="gallery-caption">Our Dedicated Staff</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="why-us-section">
+        <div class="why-us-container">
+            <div class="why-us-content">
+                <h2>The Akash Standard.</h2>
+                <p>We don't just clean; we care for your space as if it were our own. Our rigorous vetting process
+                    ensures only the top 1% of professionals enter your home.</p>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fa-solid fa-check"></i>
+                        <div>
+                            <h4>Stringent Vetting</h4>
+                            <p>Comprehensive background checks on all staff.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-check"></i>
+                        <div>
+                            <h4>Professional Equipment</h4>
+                            <p>We use industrial-grade vacuums and specialized tools for superior results.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-check"></i>
+                        <div>
+                            <h4>Damage Protection</h4>
+                            <p>Fully insured services for your peace of mind.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="why-us-image">
+                <img src="assets/team.jpg" alt="Clean Home Interior"
+                    onerror="this.src='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=800&q=80'">
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Section -->
+    <section id="booking" class="booking-section">
+        <div class="booking-container">
+            <div class="booking-header">
+                <h2>Reserve Your Slot</h2>
+                <p>Complete the details below for instant WhatsApp confirmation.</p>
+            </div>
+
+            <form id="bookingForm" class="booking-form">
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="name">Full Name</label>
+                        <div class="input-with-icon">
+                            <i class="fa-regular fa-user"></i>
+                            <input type="text" id="name" required placeholder="John Doe">
+                        </div>
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="phone">Phone Number</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-phone"></i>
+                            <input type="tel" id="phone" required placeholder="10-digit mobile number"
+                                pattern="[0-9]{10}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address in Dehradun</label>
+                    <div class="input-with-icon align-top">
+                        <i class="fa-solid fa-location-dot" style="margin-top: 12px;"></i>
+                        <textarea id="address" required placeholder="Your full address, landmark, pin code"
+                            rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half-width">
+                        <label for="service">Select Service</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-broom"></i>
+                            <select id="service" required>
+                                <option value="" disabled selected>Choose a service...</option>
+                                <optgroup label="Cleaning Services">
+                                    <option value="House Keeping">House Keeping</option>
+                                    <option value="Deep Cleaning">Deep Cleaning</option>
+                                    <option value="Sofa Cleaning">Sofa Cleaning</option>
+                                    <option value="Carpet Cleaning">Carpet Cleaning</option>
+                                    <option value="Washroom Cleaning">Washroom Cleaning</option>
+                                    <option value="House Sanitization">House Sanitization</option>
+                                </optgroup>
+                                <optgroup label="Maintenance Services">
+                                    <option value="Water Tank Cleaning">Water Tank Cleaning</option>
+                                    <option value="Sewer Cleaning">Sewer Cleaning</option>
+                                    <option value="Drainage Cleaning">Drainage Cleaning</option>
+                                </optgroup>
+                                <optgroup label="Repair Services">
+                                    <option value="Plumbing">Plumbing</option>
+                                    <option value="Electrician">Electrician</option>
+                                    <option value="Carpenter">Carpenter</option>
+                                </optgroup>
+                                <optgroup label="Special Services">
+                                    <option value="Solar Power Plant">Solar Power Plant</option>
+                                    <option value="Total Building Solution">Total Building Solution</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group half-width">
+                        <label for="date">Preferred Date</label>
+                        <div class="input-with-icon">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="date" id="date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-100 large-btn submit-btn">
+                    Confirm Booking <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="secure-badge">
+                <i class="fa-solid fa-lock"></i> Secure & Spam-free. Pay after the service is completed.
+            </div>
+        </div>
+    </section>
+
+    <!-- Partner / Worker Joining Section -->
+    <section id="partner" class="partner-section">
+        <div class="partner-container">
+            <div class="partner-content">
+                <h2>Are you a Skilled Professional?</h2>
+                <p>Join Dehradun's fastest-growing home services platform. Get regular work, flexible timings, and great
+                    payouts.</p>
+                <form id="partnerForm" class="partner-form">
+                    <input type="text" id="partnerName" placeholder="Your Name" required>
+                    <input type="tel" id="partnerPhone" placeholder="Mobile Number" required>
+                    <select id="partnerSkill" required>
+                        <option value="" disabled selected>Your Skill / Trade</option>
+                        <option value="Cleaner">Cleaner / Housekeeper</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Carpenter">Carpenter</option>
+                    </select>
+                    <button type="submit" class="btn-outline light">Apply Now</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer & Contact & Map -->
+    <footer id="contact" class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>Akash<span class="logo-highlight">Cleaning.</span></h3>
+                <p>Elevating the standard of home services in Dehradun through dedication, trust, and unparalleled
+                    quality.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <div class="contact-methods">
+                    <div class="contact-line">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>+91 7310502324, +91 8958585757</span>
+                    </div>
+                    <div class="contact-line">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>support@akashcleaning.com</span>
+                    </div>
+                    <div class="contact-line">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>123 Rajpur Road, Dehradun, Uttarakhand 248001</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-map">
+                <h4>Service Area</h4>
+                <!-- Embedded Google Map of Dehradun -->
+                <div class="map-container">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m3!1d110204.74315252876!2d77.94709425170327!3d30.325409848522305!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390929c356c888af%3A0x4c3562c032518799!2sDehradun%2C%20Uttarakhand!5e0!3m2!1sen!2sin!4v1714500000000!5m2!1sen!2sin"
+                        style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Akash House Keeping & Cleaning Services. All rights reserved. | <a href="admin.html">Admin
+                    Dashboard</a></p>
+        </div>
+    </footer>
+
+    <!-- Floating Action Button (WhatsApp) -->
+    <a href="https://wa.me/917310502324" target="_blank" class="fab-whatsapp" title="Chat on WhatsApp">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <div class="modal-icon"><i class="fa-solid fa-leaf"></i></div>
+                <h2 id="modalTitle">Welcome Back</h2>
+                <p id="modalSubtitle">Sign in to track your service history</p>
+            </div>
+            <form id="authForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary w-100" id="authSubmitBtn">Sign In</button>
+            </form>
+            <p class="toggle-auth">
+                <span id="toggleAuthText">New here? </span>
+                <a href="#" id="toggleAuthBtn">Create an Account</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="toast-message" id="toastMessage">Success</div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
