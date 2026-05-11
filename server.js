@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -10,12 +11,15 @@ const nodemailer = require('nodemailer');
 const otpStore = {}; // Temporary memory store for OTPs
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = 'super_secret_key_for_house_cleaning';
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve static frontend files from 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize SQLite database
 const db = new sqlite3.Database('./database.sqlite', (err) => {
