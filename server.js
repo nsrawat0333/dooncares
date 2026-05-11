@@ -171,48 +171,50 @@ app.post('/api/bookings', (req, res) => {
     db.run(
         `INSERT INTO bookings (name, phone, address, service, date, userEmail, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [name, phone, address, service, date, userEmail, status],
-        async function(err) {
+        function(err) {
             if (err) return res.status(500).json({ error: 'Database error' });
 
-            try {
-                let transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS,
-                    },
-                });
+            // 1. Respond immediately so the user doesn't wait!
+            res.status(201).json({ message: 'Booking created successfully', id: this.lastID });
 
-                // 1. Send Email to the Business Admin
-                await transporter.sendMail({
-                    from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-                    to: process.env.EMAIL_USER, 
-                    subject: `New Booking: ${service} by ${name}`,
-                    html: `
-                        <h2>New Booking Received!</h2>
-                        <p><strong>Name:</strong> ${name}</p>
-                        <p><strong>Phone:</strong> ${phone}</p>
-                        <p><strong>Service:</strong> ${service}</p>
-                        <p><strong>Date:</strong> ${date}</p>
-                        <p><strong>Address:</strong> ${address}</p>
-                        <p><strong>User Email:</strong> ${userEmail}</p>
-                    `,
-                });
+            // 2. Send emails in the background
+            (async () => {
+                try {
+                    let transporter = nodemailer.createTransport({
+                        service: 'gmail',
+                        auth: {
+                            user: process.env.EMAIL_USER,
+                            pass: process.env.EMAIL_PASS,
+                        },
+                    });
 
-                // 2. Send Confirmation Email to the User (if they are logged in)
-                if (userEmail && userEmail !== 'Guest') {
                     await transporter.sendMail({
                         from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-                        to: userEmail,
-                        subject: `Booking Confirmed: ${service}`,
-                        html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
+                        to: process.env.EMAIL_USER, 
+                        subject: `New Booking: ${service} by ${name}`,
+                        html: `
+                            <h2>New Booking Received!</h2>
+                            <p><strong>Name:</strong> ${name}</p>
+                            <p><strong>Phone:</strong> ${phone}</p>
+                            <p><strong>Service:</strong> ${service}</p>
+                            <p><strong>Date:</strong> ${date}</p>
+                            <p><strong>Address:</strong> ${address}</p>
+                            <p><strong>User Email:</strong> ${userEmail}</p>
+                        `,
                     });
-                }
-            } catch (emailErr) {
-                console.error("Failed to send booking email:", emailErr);
-            }
 
-            res.status(201).json({ message: 'Booking created successfully', id: this.lastID });
+                    if (userEmail && userEmail !== 'Guest') {
+                        await transporter.sendMail({
+                            from: `"Home Solution" <${process.env.EMAIL_USER}>`,
+                            to: userEmail,
+                            subject: `Booking Confirmed: ${service}`,
+                            html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
+                        });
+                    }
+                } catch (emailErr) {
+                    console.error("Failed to send booking email:", emailErr);
+                }
+            })();
         }
     );
 });
