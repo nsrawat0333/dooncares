@@ -86,12 +86,20 @@ toggleAuthBtn.addEventListener('click', (e) => {
 // Check Auth State
 function checkAuthState() {
     const token = localStorage.getItem('token');
-    if (token) {
+    const userEmail = localStorage.getItem('userEmail');
+    if (token && userEmail) {
         authBtn.classList.add('hidden');
         userInfo.classList.remove('hidden');
+        userInfo.querySelector('.avatar').setAttribute('title', userEmail);
+        
+        const bookingEmailInput = document.getElementById('bookingEmail');
+        if(bookingEmailInput) bookingEmailInput.value = userEmail;
     } else {
         authBtn.classList.remove('hidden');
         userInfo.classList.add('hidden');
+        
+        const bookingEmailInput = document.getElementById('bookingEmail');
+        if(bookingEmailInput) bookingEmailInput.value = '';
     }
 }
 // Run on load
@@ -203,12 +211,12 @@ bookingForm.addEventListener('submit', async (e) => {
     
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
+    const bookingEmail = document.getElementById('bookingEmail').value;
     const address = document.getElementById('address').value;
     const service = document.getElementById('service').value;
     const date = document.getElementById('date').value;
-    const businessPhone = "917310502324"; 
 
-    const userEmail = localStorage.getItem('userEmail') || 'Guest';
+    const userEmail = bookingEmail || localStorage.getItem('userEmail') || 'Guest';
 
     const bookingData = {
         name, phone, address, service, date, userEmail
