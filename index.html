@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akash House Keeping & Cleaning Services</title>
+    <title>Home Solution</title>
     <link rel="stylesheet" href="style.css">
     <!-- Google Fonts -->
     <link
@@ -19,7 +19,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                Akash<span class="logo-highlight">Cleaning.</span>
+                Home<span class="logo-highlight">Solution.</span>
             </div>
             <div class="nav-links">
                 <a href="#services">Services</a>
@@ -53,7 +53,7 @@
         </div>
         <div class="hero-image-right">
             <!-- Using the user's provided real image of the team/cleaning -->
-            <img src="assets/hero.jpg" alt="Akash Cleaning Team at Work" class="hero-img-main"
+            <img src="assets/hero.jpg" alt="Home Solution Team at Work" class="hero-img-main"
                 onerror="this.src='https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80'">
             <div class="experience-badge">
                 <div class="exp-number">5+</div>
@@ -237,7 +237,7 @@
     <section class="why-us-section">
         <div class="why-us-container">
             <div class="why-us-content">
-                <h2>The Akash Standard.</h2>
+                <h2>The Home Solution Standard.</h2>
                 <p>We don't just clean; we care for your space as if it were our own. Our rigorous vetting process
                     ensures only the top 1% of professionals enter your home.</p>
                 <div class="features-list">
@@ -385,7 +385,7 @@
     <footer id="contact" class="footer">
         <div class="footer-grid">
             <div class="footer-brand">
-                <h3>Akash<span class="logo-highlight">Cleaning.</span></h3>
+                <h3>Home<span class="logo-highlight">Solution.</span></h3>
                 <p>Elevating the standard of home services in Dehradun through dedication, trust, and unparalleled
                     quality.</p>
                 <div class="social-links">
@@ -404,7 +404,7 @@
                     </div>
                     <div class="contact-line">
                         <i class="fa-solid fa-envelope"></i>
-                        <span>support@akashcleaning.com</span>
+                        <span>support@homesolution.com</span>
                     </div>
                     <div class="contact-line">
                         <i class="fa-solid fa-location-dot"></i>
@@ -425,7 +425,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Akash House Keeping & Cleaning Services. All rights reserved. | <a href="admin.html">Admin
+            <p>&copy; 2026 Home Solution. All rights reserved. | <a href="admin.html">Admin
                     Dashboard</a></p>
         </div>
     </footer>
@@ -452,6 +452,15 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <div class="form-group" id="confirmPasswordGroup" style="display: none;">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="••••••••">
+                </div>
+                <div class="form-group" id="otpGroup" style="display: none;">
+                    <label for="otp">Verification Code (OTP)</label>
+                    <input type="text" id="otp" placeholder="123456" maxlength="6">
+                    <small style="color: var(--primary); display: block; margin-top: 5px;">OTP sent to your email! (Check terminal output for testing)</small>
                 </div>
                 <button type="submit" class="btn-primary w-100" id="authSubmitBtn">Sign In</button>
             </form>

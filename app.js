@@ -1,22 +1,5 @@
-// Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-// TODO: REPLACE THIS WITH YOUR ACTUAL FIREBASE CONFIGURATION
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Base URL for API
+const API_URL = 'http://localhost:3000/api';
 
 // DOM Elements
 const authBtn = document.getElementById('authBtn');
@@ -37,8 +20,13 @@ const toastIcon = document.querySelector('.toast-icon i');
 const bookingForm = document.getElementById('bookingForm');
 const serviceSelect = document.getElementById('service');
 const partnerForm = document.getElementById('partnerForm');
+const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const otpGroup = document.getElementById('otpGroup');
+const otpInput = document.getElementById('otp');
 
 let isLoginMode = true;
+let isSignupStep1 = true;
 
 // UI Helpers
 function showLoader() { loader.classList.remove('hidden'); }
@@ -77,25 +65,37 @@ toggleAuthBtn.addEventListener('click', (e) => {
         authSubmitBtn.textContent = 'Sign In';
         toggleAuthText.textContent = "New here? ";
         toggleAuthBtn.textContent = 'Create an Account';
+        confirmPasswordGroup.style.display = 'none';
+        confirmPasswordInput.required = false;
+        otpGroup.style.display = 'none';
+        otpInput.required = false;
     } else {
+        isSignupStep1 = true;
         modalTitle.textContent = 'Create Account';
         modalSubtitle.textContent = 'Sign up for exclusive offers';
-        authSubmitBtn.textContent = 'Sign Up';
+        authSubmitBtn.textContent = 'Send OTP';
         toggleAuthText.textContent = "Already have an account? ";
         toggleAuthBtn.textContent = 'Sign In';
+        confirmPasswordGroup.style.display = 'block';
+        confirmPasswordInput.required = true;
+        otpGroup.style.display = 'none';
+        otpInput.required = false;
     }
 });
 
-// Auth State Listener
-onAuthStateChanged(auth, (user) => {
-    if (user) {
+// Check Auth State
+function checkAuthState() {
+    const token = localStorage.getItem('token');
+    if (token) {
         authBtn.classList.add('hidden');
         userInfo.classList.remove('hidden');
     } else {
         authBtn.classList.remove('hidden');
         userInfo.classList.add('hidden');
     }
-});
+}
+// Run on load
+checkAuthState();
 
 // Auth Form Submit (Login / Signup)
 authForm.addEventListener('submit', async (e) => {
@@ -103,17 +103,85 @@ authForm.addEventListener('submit', async (e) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
+    if (!isLoginMode) {
+        if (isSignupStep1) {
+            const confirmPassword = confirmPasswordInput.value;
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match!', 'error');
+                return;
+            }
+            
+            showLoader();
+            try {
+                const res = await fetch(`${API_URL}/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (res.ok) {
+                    showToast('OTP sent to email!');
+                    otpGroup.style.display = 'block';
+                    otpInput.required = true;
+                    authSubmitBtn.textContent = 'Verify & Sign Up';
+                    isSignupStep1 = false;
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Failed to send OTP');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                hideLoader();
+            }
+            return;
+        } else {
+            // Step 2: Verify OTP and Sign Up
+            const otp = otpInput.value;
+            showLoader();
+            try {
+                const res = await fetch(`${API_URL}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, otp })
+                });
+                if (res.ok) {
+                    showToast('Account created successfully! Please sign in.');
+                    toggleAuthBtn.click(); // Switch to login mode
+                    authForm.reset();
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Authentication failed');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                hideLoader();
+            }
+            return;
+        }
+    }
+    
+    // Login Flow
     showLoader();
     try {
-        if (isLoginMode) {
-            await signInWithEmailAndPassword(auth, email, password);
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userEmail', data.email);
             showToast('Logged in successfully!');
+            checkAuthState();
+            authModal.classList.remove('active');
+            authForm.reset();
         } else {
-            await createUserWithEmailAndPassword(auth, email, password);
-            showToast('Account created successfully!');
+            throw new Error(data.error || 'Authentication failed');
         }
-        authModal.classList.remove('active');
-        authForm.reset();
     } catch (error) {
         showToast(error.message, 'error');
     } finally {
@@ -122,16 +190,11 @@ authForm.addEventListener('submit', async (e) => {
 });
 
 // Logout
-logoutBtn.addEventListener('click', async () => {
-    showLoader();
-    try {
-        await signOut(auth);
-        showToast('Logged out successfully');
-    } catch (error) {
-        showToast(error.message, 'error');
-    } finally {
-        hideLoader();
-    }
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    showToast('Logged out successfully');
+    checkAuthState();
 });
 
 // Booking Submit
@@ -145,31 +208,26 @@ bookingForm.addEventListener('submit', async (e) => {
     const date = document.getElementById('date').value;
     const businessPhone = "917310502324"; 
 
-    const user = auth.currentUser;
-    const userEmail = user ? user.email : 'Guest';
+    const userEmail = localStorage.getItem('userEmail') || 'Guest';
 
     const bookingData = {
-        name, phone, address, service, date, userEmail,
-        status: 'Pending',
-        createdAt: serverTimestamp()
+        name, phone, address, service, date, userEmail
     };
 
     showLoader();
     try {
-        if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
-            await addDoc(collection(db, "bookings"), bookingData);
+        const response = await fetch(`${API_URL}/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save booking');
         }
         
-        showToast('Booking Confirmed!', 'success');
+        showToast('Booking Confirmed! You will receive an email shortly.', 'success');
         bookingForm.reset();
-
-        // Generate WhatsApp Link exactly as requested
-        const waMessage = `New Booking:%0AName: ${name}%0APhone: ${phone}%0AService: ${service}%0ADate: ${date}`;
-        const waUrl = `https://wa.me/${businessPhone}?text=${waMessage}`;
-        
-        setTimeout(() => {
-            window.open(waUrl, '_blank');
-        }, 1500);
 
     } catch (error) {
         console.error("Error adding document: ", error);
@@ -190,27 +248,23 @@ if (partnerForm) {
         const businessPhone = "917310502324"; 
 
         const partnerData = {
-            name, phone, skill,
-            status: 'New Applicant',
-            createdAt: serverTimestamp()
+            name, phone, skill
         };
 
         showLoader();
         try {
-            if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
-                await addDoc(collection(db, "worker_applications"), partnerData);
+            const response = await fetch(`${API_URL}/partner`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(partnerData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit application');
             }
             
             showToast('Application Submitted! We will contact you soon.', 'success');
             partnerForm.reset();
-
-            // Optional: send a WhatsApp message to HR
-            const waMessage = `New Partner Application:%0AName: ${name}%0APhone: ${phone}%0ASkill: ${skill}`;
-            const waUrl = `https://wa.me/${businessPhone}?text=${waMessage}`;
-            
-            setTimeout(() => {
-                window.open(waUrl, '_blank');
-            }, 1500);
 
         } catch (error) {
             console.error("Error adding document: ", error);

@@ -1,21 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-// TODO: REPLACE THIS WITH YOUR ACTUAL FIREBASE CONFIGURATION
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const API_URL = 'http://localhost:3000/api';
 
 // DOM Elements
 const adminLoginView = document.getElementById('adminLoginView');
@@ -35,17 +18,20 @@ function showToast(msg, type = 'success') {
 }
 
 // Auth State Listener
-onAuthStateChanged(auth, (user) => {
-    if (user && user.email === ADMIN_EMAIL) {
+function checkAdminAuthState() {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
         adminLoginView.classList.add('hidden');
         adminDashboardView.classList.remove('hidden');
         fetchBookings();
     } else {
-        if(user) signOut(auth); // If logged in but not admin, sign out
         adminLoginView.classList.remove('hidden');
         adminDashboardView.classList.add('hidden');
     }
-});
+}
+
+// Run on load
+checkAdminAuthState();
 
 // Admin Login
 adminLoginForm.addEventListener('submit', async (e) => {
@@ -59,50 +45,55 @@ adminLoginForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showToast("Welcome Admin");
+        const response = await fetch(`${API_URL}/auth/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('adminToken', data.token);
+            showToast("Welcome Admin");
+            checkAdminAuthState();
+        } else {
+            showToast(data.error || "Login failed", "error");
+        }
     } catch (error) {
         showToast(error.message, "error");
     }
 });
 
 // Admin Logout
-adminLogoutBtn.addEventListener('click', async () => {
-    try {
-        await signOut(auth);
-        showToast("Logged out");
-    } catch (error) {
-        showToast(error.message, "error");
-    }
+adminLogoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('adminToken');
+    showToast("Logged out");
+    checkAdminAuthState();
 });
 
-// Fetch Bookings Real-time
-function fetchBookings() {
-    // Only attempt if Firebase is configured
-    if(firebaseConfig.apiKey === "YOUR_API_KEY") {
-        bookingsTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Firebase config missing. Mock Data: No bookings yet.</td></tr>`;
-        return;
-    }
-
-    const q = query(collection(db, "bookings"), orderBy("createdAt", "desc"));
-    
-    onSnapshot(q, (querySnapshot) => {
+// Fetch Bookings
+async function fetchBookings() {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`${API_URL}/bookings`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch bookings");
+        
+        const bookings = await response.json();
+        
         bookingsTableBody.innerHTML = '';
-        if(querySnapshot.empty) {
+        if(bookings.length === 0) {
             bookingsTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No bookings found.</td></tr>`;
             return;
         }
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        bookings.forEach((data) => {
             const tr = document.createElement('tr');
             
-            // Format Date safely
-            let displayDate = data.date;
-            if(data.createdAt) {
-               // optional: show created date instead or along with preferred date
-            }
-
             tr.innerHTML = `
                 <td>${data.date}</td>
                 <td><strong>${data.name}</strong></td>
@@ -113,8 +104,8 @@ function fetchBookings() {
             `;
             bookingsTableBody.appendChild(tr);
         });
-    }, (error) => {
+    } catch (error) {
         console.error("Error fetching bookings: ", error);
         showToast("Failed to fetch bookings.", "error");
-    });
+    }
 }
