@@ -42,6 +42,7 @@ const transporter = nodemailer.createTransport({
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
+const resendApiKey = process.env.RESEND_API_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
     console.error("WARNING: Missing SUPABASE_URL or SUPABASE_KEY in .env");
@@ -49,6 +50,38 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('Initialized Supabase client.');
+
+// Helper function to send email via Resend API
+async function sendResendEmail(to, subject, html) {
+    if (!resendApiKey) {
+        console.error("[RESEND ERROR] API Key missing");
+        return { ok: false, error: 'API Key missing' };
+    }
+
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${resendApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: 'Home Solution <onboarding@resend.dev>',
+                to: Array.isArray(to) ? to : [to],
+                subject: subject,
+                html: html
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            console.error("[RESEND ERROR]", JSON.stringify(data, null, 2));
+        }
+        return { data, ok: response.ok };
+    } catch (err) {
+        console.error("[RESEND FETCH ERROR]", err);
+        return { ok: false, error: err.message };
+    }
+}
 
 // Middleware to verify token
 function authenticateToken(req, res, next) {
@@ -204,35 +237,36 @@ app.post('/api/bookings', async (req, res) => {
     // 2. Send emails in the background (Fast for the user!)
     (async () => {
         try {
-            console.log(`[EMAIL] Attempting to send admin notification to: ${process.env.EMAIL_USER}`);
-            await transporter.sendMail({
-                from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-                to: process.env.EMAIL_USER, 
-                subject: `New Booking: ${service} by ${name}`,
-                html: `
-                    <h2>New Booking Received!</h2>
-                    <p><strong>Name:</strong> ${name}</p>
-                    <p><strong>Phone:</strong> ${phone}</p>
-                    <p><strong>Service:</strong> ${service}</p>
-                    <p><strong>Date:</strong> ${date}</p>
-                    <p><strong>Address:</strong> ${address}</p>
-                    <p><strong>User Email:</strong> ${userEmail}</p>
-                `,
-            });
-            console.log(`[EMAIL SUCCESS] Admin notification sent.`);
+            console.log(`[EMAIL] Attempting to send admin notification via Resend to: ${process.env.EMAIL_USER}`);
+            const adminEmailHtml = `
+                <h2>New Booking Received!</h2>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Service:</strong> ${service}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Address:</strong> ${address}</p>
+                <p><strong>User Email:</strong> ${userEmail}</p>
+            `;
+            
+            const adminRes = await sendResendEmail(process.env.EMAIL_USER, `New Booking: ${service} by ${name}`, adminEmailHtml);
+            if (adminRes.ok) {
+                console.log(`[EMAIL SUCCESS] Admin notification sent via Resend.`);
+            }
 
             if (userEmail && userEmail !== 'Guest') {
-                console.log(`[EMAIL] Attempting to send user confirmation to: ${userEmail}`);
-                await transporter.sendMail({
-                    from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-                    to: userEmail,
-                    subject: `Booking Confirmed: ${service}`,
-                    html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
-                });
-                console.log(`[EMAIL SUCCESS] User confirmation sent.`);
+                console.log(`[EMAIL] Attempting to send user confirmation via Resend to: ${userEmail}`);
+                const userEmailHtml = `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`;
+                
+                // Note: Resend's free tier only allows sending to your own email unless you verify a domain.
+                const userRes = await sendResendEmail(userEmail, `Booking Confirmed: ${service}`, userEmailHtml);
+                if (userRes.ok) {
+                    console.log(`[EMAIL SUCCESS] User confirmation sent via Resend.`);
+                } else {
+                    console.warn(`[EMAIL WARN] User confirmation failed (might be due to Resend sandbox limits).`);
+                }
             }
         } catch (emailErr) {
-            console.error("[EMAIL ERROR] Failed to send booking email:", emailErr);
+            console.error("[EMAIL ERROR] Unexpected error in Resend flow:", emailErr);
         }
     })();
 });
