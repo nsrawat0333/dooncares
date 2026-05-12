@@ -20,13 +20,13 @@ const toastIcon = document.querySelector('.toast-icon i');
 const bookingForm = document.getElementById('bookingForm');
 const serviceSelect = document.getElementById('service');
 const partnerForm = document.getElementById('partnerForm');
-const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
-const confirmPasswordInput = document.getElementById('confirmPassword');
+const usernameGroup = document.getElementById('usernameGroup');
+const usernameInput = document.getElementById('username');
 const otpGroup = document.getElementById('otpGroup');
 const otpInput = document.getElementById('otp');
 
 let isLoginMode = true;
-let isSignupStep1 = true;
+let isStep1 = true;
 
 // UI Helpers
 function showLoader() { loader.classList.remove('hidden'); }
@@ -50,7 +50,17 @@ window.selectService = (serviceName) => {
 };
 
 // Auth Modal Toggling
-authBtn.addEventListener('click', () => { authModal.classList.add('active'); });
+authBtn.addEventListener('click', () => { 
+    isLoginMode = true;
+    isStep1 = true;
+    otpGroup.style.display = 'none';
+    otpInput.required = false;
+    usernameGroup.style.display = 'none';
+    usernameInput.required = false;
+    authSubmitBtn.textContent = 'Send OTP';
+    authForm.reset();
+    authModal.classList.add('active'); 
+});
 closeModal.addEventListener('click', () => { authModal.classList.remove('active'); });
 window.addEventListener('click', (e) => {
     if (e.target === authModal) authModal.classList.remove('active');
@@ -59,27 +69,25 @@ window.addEventListener('click', (e) => {
 toggleAuthBtn.addEventListener('click', (e) => {
     e.preventDefault();
     isLoginMode = !isLoginMode;
+    isStep1 = true;
+    otpGroup.style.display = 'none';
+    otpInput.required = false;
     if (isLoginMode) {
         modalTitle.textContent = 'Welcome Back';
         modalSubtitle.textContent = 'Sign in to track your service history';
-        authSubmitBtn.textContent = 'Sign In';
+        authSubmitBtn.textContent = 'Send OTP';
         toggleAuthText.textContent = "New here? ";
         toggleAuthBtn.textContent = 'Create an Account';
-        confirmPasswordGroup.style.display = 'none';
-        confirmPasswordInput.required = false;
-        otpGroup.style.display = 'none';
-        otpInput.required = false;
+        usernameGroup.style.display = 'none';
+        usernameInput.required = false;
     } else {
-        isSignupStep1 = true;
         modalTitle.textContent = 'Create Account';
         modalSubtitle.textContent = 'Sign up for exclusive offers';
         authSubmitBtn.textContent = 'Send OTP';
         toggleAuthText.textContent = "Already have an account? ";
         toggleAuthBtn.textContent = 'Sign In';
-        confirmPasswordGroup.style.display = 'block';
-        confirmPasswordInput.required = true;
-        otpGroup.style.display = 'none';
-        otpInput.required = false;
+        usernameGroup.style.display = 'block';
+        usernameInput.required = true;
     }
 });
 
@@ -103,91 +111,84 @@ checkAuthState();
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
     
-    if (!isLoginMode) {
-        if (isSignupStep1) {
-            const confirmPassword = confirmPasswordInput.value;
-            if (password !== confirmPassword) {
-                showToast('Passwords do not match!', 'error');
-                return;
+    if (isStep1) {
+        showLoader();
+        try {
+            const res = await fetch(`${API_URL}/auth/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            if (res.ok) {
+                showToast('OTP sent to email!');
+                otpGroup.style.display = 'block';
+                otpInput.required = true;
+                authSubmitBtn.textContent = isLoginMode ? 'Verify & Sign In' : 'Verify & Sign Up';
+                isStep1 = false;
+            } else {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to send OTP');
             }
-            
-            showLoader();
-            try {
-                const res = await fetch(`${API_URL}/auth/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
-                if (res.ok) {
-                    showToast('OTP sent to email!');
-                    otpGroup.style.display = 'block';
-                    otpInput.required = true;
-                    authSubmitBtn.textContent = 'Verify & Sign Up';
-                    isSignupStep1 = false;
-                } else {
-                    const data = await res.json();
-                    throw new Error(data.error || 'Failed to send OTP');
-                }
-            } catch (err) {
-                showToast(err.message, 'error');
-            } finally {
-                hideLoader();
-            }
-            return;
-        } else {
-            // Step 2: Verify OTP and Sign Up
-            const otp = otpInput.value;
-            showLoader();
-            try {
-                const res = await fetch(`${API_URL}/auth/signup`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, otp })
-                });
-                if (res.ok) {
-                    showToast('Account created successfully! Please sign in.');
-                    toggleAuthBtn.click(); // Switch to login mode
-                    authForm.reset();
-                } else {
-                    const data = await res.json();
-                    throw new Error(data.error || 'Authentication failed');
-                }
-            } catch (err) {
-                showToast(err.message, 'error');
-            } finally {
-                hideLoader();
-            }
-            return;
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            hideLoader();
         }
+        return;
     }
     
-    // Login Flow
-    showLoader();
-    try {
-        const response = await fetch(`${API_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('userEmail', data.email);
-            showToast('Logged in successfully!');
-            checkAuthState();
-            authModal.classList.remove('active');
-            authForm.reset();
-        } else {
-            throw new Error(data.error || 'Authentication failed');
+    const otp = otpInput.value;
+    
+    if (!isLoginMode) {
+        // Signup
+        const username = usernameInput.value;
+        showLoader();
+        try {
+            const res = await fetch(`${API_URL}/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, username, otp })
+            });
+            if (res.ok) {
+                showToast('Account created successfully! Please sign in.');
+                toggleAuthBtn.click(); // Switch to login mode
+            } else {
+                const data = await res.json();
+                throw new Error(data.error || 'Authentication failed');
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+        } finally {
+            hideLoader();
         }
-    } catch (error) {
-        showToast(error.message, 'error');
-    } finally {
-        hideLoader();
+    } else {
+        // Login Flow
+        showLoader();
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userEmail', data.email);
+                showToast('Logged in successfully!');
+                checkAuthState();
+                authModal.classList.remove('active');
+                authForm.reset();
+            } else {
+                throw new Error(data.error || 'Authentication failed');
+            }
+        } catch (error) {
+            showToast(error.message, 'error');
+        } finally {
+            hideLoader();
+        }
     }
 });
 

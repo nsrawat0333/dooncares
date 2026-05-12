@@ -43,7 +43,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE,
             email TEXT UNIQUE,
-            password TEXT
+            username TEXT
         )`);
 
         // Create Bookings table
@@ -123,16 +123,15 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
-    const { email, password, otp } = req.body;
+    const { email, username, otp } = req.body;
     
     if (!otpStore[email] || otpStore[email] !== otp) {
         return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
         const user_id = 'USR_' + crypto.randomBytes(4).toString('hex');
-        db.run(`INSERT INTO users (user_id, email, password) VALUES (?, ?, ?)`, [user_id, email, hashedPassword], function(err) {
+        db.run(`INSERT INTO users (user_id, email, username) VALUES (?, ?, ?)`, [user_id, email, username], function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     return res.status(400).json({ error: 'Email already exists' });
@@ -149,16 +148,19 @@ app.post('/api/auth/signup', async (req, res) => {
 
 // Login
 app.post('/api/auth/login', (req, res) => {
-    const { email, password } = req.body;
+    const { email, otp } = req.body;
+    
+    if (!otpStore[email] || otpStore[email] !== otp) {
+        return res.status(400).json({ error: 'Invalid or expired OTP' });
+    }
+
     db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (!user) return res.status(400).json({ error: 'User not found' });
 
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
-
+        delete otpStore[email];
         const token = jwt.sign({ id: user.user_id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-        res.json({ token, email: user.email, user_id: user.user_id });
+        res.json({ token, email: user.email, username: user.username, user_id: user.user_id });
     });
 });
 
