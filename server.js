@@ -101,7 +101,7 @@ app.post('/api/auth/signup', async (req, res) => {
         
         const { error } = await supabase
             .from('users')
-            .insert([{ user_id, email, username, otp }]); // Storing OTP as requested
+            .insert([{ user_id, email, username }]); // Removed otp from here to fix missing column error
 
         if (error) {
             console.error("[DB ERROR] Signup Insert Error:", JSON.stringify(error, null, 2));
