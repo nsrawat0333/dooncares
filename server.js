@@ -8,7 +8,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const emailValidator = require('deep-email-validator');
 
 const otpStore = {}; // Temporary memory store for OTPs
 
@@ -95,22 +94,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
-    // Verify if the email is actually real
-    try {
-        const validation = await emailValidator.validate({
-            email: email,
-            validateRegex: true,
-            validateMx: true,
-            validateTypo: true,
-            validateDisposable: true,
-            validateSMTP: false // Disabling SMTP check prevents long loading times
-        });
-        if (!validation.valid) {
-            // We ignore SMTP failure as it can be flaky, but catch regex, typo, disposable, and MX record issues
-            return res.status(400).json({ error: 'Please enter a valid, real email address.' });
-        }
-    } catch (error) {
-        console.error("Email validation error:", error);
+    // Simple regex for email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address.' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
