@@ -61,6 +61,8 @@ function authenticateToken(req, res, next) {
 // Send OTP
 app.post('/api/auth/send-otp', async (req, res) => {
     const { email } = req.body;
+    console.log(`[AUTH] Send OTP request for: ${email}`);
+    
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,41 +73,48 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const { error } = await supabase.auth.signInWithOtp({ email });
     
     if (error) {
-        console.error("Supabase Auth OTP Error:", error);
+        console.error("[AUTH ERROR] Supabase Auth OTP Error:", JSON.stringify(error, null, 2));
         return res.status(400).json({ error: error.message });
     }
 
-    console.log(`[TESTING] Supabase OTP email requested for ${email}`);
+    console.log(`[AUTH SUCCESS] Supabase OTP email requested for ${email}`);
     res.json({ message: 'OTP sent successfully via Supabase.' });
 });
 
 // Signup
 app.post('/api/auth/signup', async (req, res) => {
     const { email, username, otp } = req.body;
+    console.log(`[AUTH] Signup attempt for: ${email}, Username: ${username}`);
     
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
     
     if (authError) {
-        console.error("Auth Verify Error:", authError);
+        console.error("[AUTH ERROR] Signup Verify Error:", JSON.stringify(authError, null, 2));
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
     }
 
+    console.log(`[AUTH SUCCESS] OTP Verified for ${email}. Supabase User ID: ${user.id}`);
+
     try {
         const user_id = user.id; // Use Supabase Auth UUID
+        console.log(`[DB] Inserting user into public.users table...`);
+        
         const { error } = await supabase
             .from('users')
-            .insert([{ user_id, email, username }]);
+            .insert([{ user_id, email, username, otp }]); // Storing OTP as requested
 
         if (error) {
+            console.error("[DB ERROR] Signup Insert Error:", JSON.stringify(error, null, 2));
             if (error.code === '23505') { // Unique constraint violation in Postgres
                 return res.status(400).json({ error: 'Email already exists' });
             }
-            console.error("Signup error:", error);
             return res.status(500).json({ error: 'Database error' });
         }
+        
+        console.log(`[DB SUCCESS] User profile created in public.users for ${email}`);
         res.status(201).json({ message: 'User created successfully', user_id: user_id });
     } catch (error) {
-        console.error("Signup Catch Block Error:", error);
+        console.error("[SERVER ERROR] Signup Catch Block:", error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -113,13 +122,16 @@ app.post('/api/auth/signup', async (req, res) => {
 // Login
 app.post('/api/auth/login', async (req, res) => {
     const { email, otp } = req.body;
+    console.log(`[AUTH] Login attempt for: ${email}`);
     
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
     
     if (authError) {
-        console.error("Login Auth Verify Error:", authError);
+        console.error("[AUTH ERROR] Login Verify Error:", JSON.stringify(authError, null, 2));
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
     }
+
+    console.log(`[AUTH SUCCESS] OTP Verified for ${email}. Fetching profile...`);
 
     const { data: dbUser, error } = await supabase
         .from('users')
@@ -128,9 +140,11 @@ app.post('/api/auth/login', async (req, res) => {
         .single();
 
     if (error || !dbUser) {
+        console.error("[DB ERROR] Login Profile Fetch Error:", error ? JSON.stringify(error, null, 2) : "User profile not found");
         return res.status(400).json({ error: 'User not found in database' });
     }
 
+    console.log(`[AUTH SUCCESS] Login complete for ${email}`);
     const token = jwt.sign({ id: dbUser.user_id, email: dbUser.email }, SECRET_KEY, { expiresIn: '24h' });
     res.json({ token, email: dbUser.email, username: dbUser.username, user_id: dbUser.user_id });
 });
