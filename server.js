@@ -86,6 +86,7 @@ app.post('/api/auth/signup', async (req, res) => {
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
     
     if (authError) {
+        console.error("Auth Verify Error:", authError);
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
     }
 
@@ -104,6 +105,7 @@ app.post('/api/auth/signup', async (req, res) => {
         }
         res.status(201).json({ message: 'User created successfully', user_id: user_id });
     } catch (error) {
+        console.error("Signup Catch Block Error:", error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -115,6 +117,7 @@ app.post('/api/auth/login', async (req, res) => {
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
     
     if (authError) {
+        console.error("Login Auth Verify Error:", authError);
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
     }
 
