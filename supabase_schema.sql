@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     user_id TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    username TEXT
+    username TEXT,
+    otp TEXT
 );
 
 -- Bookings Table
