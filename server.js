@@ -108,8 +108,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
         transporter.sendMail({
             from: `"Home Solution" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: "Your OTP for Account Verification",
-            html: `<h3>Your Verification Code is: <b>${otp}</b></h3>`,
+            subject: "Home Solution - Account Verification Code",
+            text: `Hello,\n\nYour Verification Code is: ${otp}\n\nPlease enter this code on the website to verify your account.\n\nThank you,\nHome Solution Team`,
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2>Welcome to Home Solution!</h2>
+                    <p>Your Verification Code is:</p>
+                    <h1 style="color: #4CAF50; font-size: 32px; letter-spacing: 5px;">${otp}</h1>
+                    <p>Please enter this code on the website to verify your account.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">If you didn't request this code, you can safely ignore this email.</p>
+                </div>
+            `,
         }).catch(error => {
             console.error("Background email send error:", error);
         });
