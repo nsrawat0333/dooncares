@@ -252,7 +252,10 @@ app.get('/api/partner', async (req, res) => {
         .select('*')
         .order('createdAt', { ascending: false });
 
-    if (error) return res.status(500).json({ error: 'Database error' });
+    if (error) {
+        console.error("Supabase Error GET /api/partner:", error);
+        return res.status(500).json({ error: 'Database error' });
+    }
     res.json(data);
 });
 
