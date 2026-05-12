@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const otpStore = {}; // Temporary memory store for OTPs
 
@@ -31,6 +32,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
         // Create Users table
         db.run(`CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT UNIQUE,
             email TEXT UNIQUE,
             password TEXT
         )`);
@@ -38,6 +40,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
         // Create Bookings table
         db.run(`CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            booking_id TEXT UNIQUE,
             name TEXT,
             phone TEXT,
             address TEXT,
@@ -51,6 +54,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
         // Create Worker Applications table
         db.run(`CREATE TABLE IF NOT EXISTS worker_applications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            profession_id TEXT UNIQUE,
             name TEXT,
             phone TEXT,
             skill TEXT,
@@ -119,7 +123,8 @@ app.post('/api/auth/signup', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        db.run(`INSERT INTO users (email, password) VALUES (?, ?)`, [email, hashedPassword], function(err) {
+        const user_id = 'USR_' + crypto.randomBytes(4).toString('hex');
+        db.run(`INSERT INTO users (user_id, email, password) VALUES (?, ?, ?)`, [user_id, email, hashedPassword], function(err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     return res.status(400).json({ error: 'Email already exists' });
@@ -127,7 +132,7 @@ app.post('/api/auth/signup', async (req, res) => {
                 return res.status(500).json({ error: 'Database error' });
             }
             delete otpStore[email];
-            res.status(201).json({ message: 'User created successfully', id: this.lastID });
+            res.status(201).json({ message: 'User created successfully', user_id: user_id });
         });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
@@ -144,8 +149,8 @@ app.post('/api/auth/login', (req, res) => {
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(400).json({ error: 'Invalid password' });
 
-        const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-        res.json({ token, email: user.email });
+        const token = jwt.sign({ id: user.user_id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
+        res.json({ token, email: user.email, user_id: user.user_id });
     });
 });
 
@@ -167,15 +172,16 @@ app.post('/api/auth/admin/login', (req, res) => {
 app.post('/api/bookings', (req, res) => {
     const { name, phone, address, service, date, userEmail } = req.body;
     const status = 'Pending';
+    const booking_id = 'BKG_' + crypto.randomBytes(4).toString('hex');
     
     db.run(
-        `INSERT INTO bookings (name, phone, address, service, date, userEmail, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [name, phone, address, service, date, userEmail, status],
+        `INSERT INTO bookings (booking_id, name, phone, address, service, date, userEmail, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [booking_id, name, phone, address, service, date, userEmail, status],
         function(err) {
             if (err) return res.status(500).json({ error: 'Database error' });
 
             // 1. Respond immediately so the user doesn't wait!
-            res.status(201).json({ message: 'Booking created successfully', id: this.lastID });
+            res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
 
             // 2. Send emails in the background
             (async () => {
@@ -233,13 +239,14 @@ app.get('/api/bookings', (req, res) => {
 app.post('/api/partner', (req, res) => {
     const { name, phone, skill } = req.body;
     const status = 'New Applicant';
+    const profession_id = 'PRO_' + crypto.randomBytes(4).toString('hex');
     
     db.run(
-        `INSERT INTO worker_applications (name, phone, skill, status) VALUES (?, ?, ?, ?)`,
-        [name, phone, skill, status],
+        `INSERT INTO worker_applications (profession_id, name, phone, skill, status) VALUES (?, ?, ?, ?, ?)`,
+        [profession_id, name, phone, skill, status],
         function(err) {
             if (err) return res.status(500).json({ error: 'Database error' });
-            res.status(201).json({ message: 'Application submitted successfully', id: this.lastID });
+            res.status(201).json({ message: 'Application submitted successfully', profession_id: profession_id });
         }
     );
 });
