@@ -97,8 +97,15 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     // Verify if the email is actually real
     try {
-        const validation = await emailValidator.validate(email);
-        if (!validation.valid && validation.reason !== 'smtp') {
+        const validation = await emailValidator.validate({
+            email: email,
+            validateRegex: true,
+            validateMx: true,
+            validateTypo: true,
+            validateDisposable: true,
+            validateSMTP: false // Disabling SMTP check prevents long loading times
+        });
+        if (!validation.valid) {
             // We ignore SMTP failure as it can be flaky, but catch regex, typo, disposable, and MX record issues
             return res.status(400).json({ error: 'Please enter a valid, real email address.' });
         }
