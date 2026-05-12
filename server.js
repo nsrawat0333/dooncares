@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const emailValidator = require('deep-email-validator');
 
 const otpStore = {}; // Temporary memory store for OTPs
 
@@ -21,6 +22,15 @@ app.use(bodyParser.json());
 
 // Serve static frontend files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Global email transporter (improves performance by not reconnecting on every request)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
 // Initialize SQLite database
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -85,17 +95,21 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
+    // Verify if the email is actually real
+    try {
+        const validation = await emailValidator.validate(email);
+        if (!validation.valid && validation.reason !== 'smtp') {
+            // We ignore SMTP failure as it can be flaky, but catch regex, typo, disposable, and MX record issues
+            return res.status(400).json({ error: 'Please enter a valid, real email address.' });
+        }
+    } catch (error) {
+        console.error("Email validation error:", error);
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore[email] = otp;
 
     try {
-        let transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
 
         let info = await transporter.sendMail({
             from: `"Home Solution" <${process.env.EMAIL_USER}>`,
@@ -186,14 +200,6 @@ app.post('/api/bookings', (req, res) => {
             // 2. Send emails in the background
             (async () => {
                 try {
-                    let transporter = nodemailer.createTransport({
-                        service: 'gmail',
-                        auth: {
-                            user: process.env.EMAIL_USER,
-                            pass: process.env.EMAIL_PASS,
-                        },
-                    });
-
                     await transporter.sendMail({
                         from: `"Home Solution" <${process.env.EMAIL_USER}>`,
                         to: process.env.EMAIL_USER, 
