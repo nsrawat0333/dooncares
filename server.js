@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
@@ -31,47 +31,16 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Initialize SQLite database
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-    if (err) {
-        console.error('Error opening database', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        
-        // Create Users table
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT UNIQUE,
-            email TEXT UNIQUE,
-            username TEXT
-        )`);
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_KEY || '';
 
-        // Create Bookings table
-        db.run(`CREATE TABLE IF NOT EXISTS bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            booking_id TEXT UNIQUE,
-            name TEXT,
-            phone TEXT,
-            address TEXT,
-            service TEXT,
-            date TEXT,
-            userEmail TEXT,
-            status TEXT,
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+if (!supabaseUrl || !supabaseKey) {
+    console.error("WARNING: Missing SUPABASE_URL or SUPABASE_KEY in .env");
+}
 
-        // Create Worker Applications table
-        db.run(`CREATE TABLE IF NOT EXISTS worker_applications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            profession_id TEXT UNIQUE,
-            name TEXT,
-            phone TEXT,
-            skill TEXT,
-            status TEXT,
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
-    }
-});
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log('Initialized Supabase client.');
 
 // Middleware to verify token
 function authenticateToken(req, res, next) {
@@ -144,37 +113,45 @@ app.post('/api/auth/signup', async (req, res) => {
 
     try {
         const user_id = 'USR_' + crypto.randomBytes(4).toString('hex');
-        db.run(`INSERT INTO users (user_id, email, username) VALUES (?, ?, ?)`, [user_id, email, username], function(err) {
-            if (err) {
-                if (err.message.includes('UNIQUE constraint failed')) {
-                    return res.status(400).json({ error: 'Email already exists' });
-                }
-                return res.status(500).json({ error: 'Database error' });
+        const { error } = await supabase
+            .from('users')
+            .insert([{ user_id, email, username }]);
+
+        if (error) {
+            if (error.code === '23505') { // Unique constraint violation in Postgres
+                return res.status(400).json({ error: 'Email already exists' });
             }
-            delete otpStore[email];
-            res.status(201).json({ message: 'User created successfully', user_id: user_id });
-        });
+            console.error("Signup error:", error);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        delete otpStore[email];
+        res.status(201).json({ message: 'User created successfully', user_id: user_id });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 });
 
 // Login
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     const { email, otp } = req.body;
     
     if (!otpStore[email] || otpStore[email] !== otp) {
         return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        if (!user) return res.status(400).json({ error: 'User not found' });
+    const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
 
-        delete otpStore[email];
-        const token = jwt.sign({ id: user.user_id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-        res.json({ token, email: user.email, username: user.username, user_id: user.user_id });
-    });
+    if (error || !user) {
+        return res.status(400).json({ error: 'User not found' });
+    }
+
+    delete otpStore[email];
+    const token = jwt.sign({ id: user.user_id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
+    res.json({ token, email: user.email, username: user.username, user_id: user.user_id });
 });
 
 // Admin Login
@@ -192,19 +169,22 @@ app.post('/api/auth/admin/login', (req, res) => {
 // --- Booking Routes ---
 
 // Create Booking
-app.post('/api/bookings', (req, res) => {
+app.post('/api/bookings', async (req, res) => {
     const { name, phone, address, service, date, userEmail } = req.body;
     const status = 'Pending';
     const booking_id = 'BKG_' + crypto.randomBytes(4).toString('hex');
     
-    db.run(
-        `INSERT INTO bookings (booking_id, name, phone, address, service, date, userEmail, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [booking_id, name, phone, address, service, date, userEmail, status],
-        function(err) {
-            if (err) return res.status(500).json({ error: 'Database error' });
+    const { error } = await supabase
+        .from('bookings')
+        .insert([{ booking_id, name, phone, address, service, date, userEmail, status }]);
 
-            // 1. Respond immediately so the user doesn't wait!
-            res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
+    if (error) {
+        console.error("Booking error:", error);
+        return res.status(500).json({ error: 'Database error' });
+    }
+
+    // 1. Respond immediately so the user doesn't wait!
+    res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
 
             // 2. Send emails in the background
             (async () => {
@@ -236,42 +216,44 @@ app.post('/api/bookings', (req, res) => {
                     console.error("Failed to send booking email:", emailErr);
                 }
             })();
-        }
-    );
 });
 
 // Get Bookings (Admin)
-app.get('/api/bookings', (req, res) => {
-    db.all(`SELECT * FROM bookings ORDER BY createdAt DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        res.json(rows);
-    });
+app.get('/api/bookings', async (req, res) => {
+    const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('createdAt', { ascending: false });
+
+    if (error) return res.status(500).json({ error: 'Database error' });
+    res.json(data);
 });
 
 // --- Worker Application Routes ---
 
 // Create Application
-app.post('/api/partner', (req, res) => {
+app.post('/api/partner', async (req, res) => {
     const { name, phone, skill } = req.body;
     const status = 'New Applicant';
     const profession_id = 'PRO_' + crypto.randomBytes(4).toString('hex');
     
-    db.run(
-        `INSERT INTO worker_applications (profession_id, name, phone, skill, status) VALUES (?, ?, ?, ?, ?)`,
-        [profession_id, name, phone, skill, status],
-        function(err) {
-            if (err) return res.status(500).json({ error: 'Database error' });
-            res.status(201).json({ message: 'Application submitted successfully', profession_id: profession_id });
-        }
-    );
+    const { error } = await supabase
+        .from('worker_applications')
+        .insert([{ profession_id, name, phone, skill, status }]);
+
+    if (error) return res.status(500).json({ error: 'Database error' });
+    res.status(201).json({ message: 'Application submitted successfully', profession_id: profession_id });
 });
 
 // Get Applications (Admin)
-app.get('/api/partner', (req, res) => {
-    db.all(`SELECT * FROM worker_applications ORDER BY createdAt DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        res.json(rows);
-    });
+app.get('/api/partner', async (req, res) => {
+    const { data, error } = await supabase
+        .from('worker_applications')
+        .select('*')
+        .order('createdAt', { ascending: false });
+
+    if (error) return res.status(500).json({ error: 'Database error' });
+    res.json(data);
 });
 
 
