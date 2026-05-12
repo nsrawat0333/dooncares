@@ -188,7 +188,7 @@ app.post('/api/bookings', async (req, res) => {
         return res.status(500).json({ error: 'Database error' });
     }
 
-    console.log(`[DB SUCCESS] Booking created: ${booking_id} for ${email || userEmail}`);
+    console.log(`[DB SUCCESS] Booking created: ${booking_id} for ${userEmail}`);
 
     // 1. Respond immediately so the user doesn't wait!
     res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
