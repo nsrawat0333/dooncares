@@ -104,19 +104,22 @@ app.post('/api/auth/send-otp', async (req, res) => {
     otpStore[email] = otp;
 
     try {
-
-        let info = await transporter.sendMail({
+        // Send email asynchronously so the user doesn't have to wait
+        transporter.sendMail({
             from: `"Home Solution" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "Your OTP for Account Verification",
             html: `<h3>Your Verification Code is: <b>${otp}</b></h3>`,
+        }).catch(error => {
+            console.error("Background email send error:", error);
         });
 
-        console.log(`[TESTING] OTP sent to ${email}`);
+        // Print the OTP to the terminal for easy testing
+        console.log(`[TESTING] OTP for ${email} is: ${otp}`);
 
-        res.json({ message: 'OTP sent successfully.' });
+        res.json({ message: 'OTP sent successfully (check email or terminal).' });
     } catch (error) {
-        console.error("Email send error:", error);
+        console.error("Error setting up OTP:", error);
         res.status(500).json({ error: 'Failed to send OTP' });
     }
 });
