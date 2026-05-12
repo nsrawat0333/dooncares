@@ -25,8 +25,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Global email transporter (improves performance by not reconnecting on every request)
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // Use STARTTLS
+    port: 465,
+    secure: true, // Use SSL
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    tls: {
+        rejectUnauthorized: false // Bypass some cloud firewall restrictions
+    },
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
