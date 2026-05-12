@@ -24,6 +24,31 @@ const usernameGroup = document.getElementById('usernameGroup');
 const usernameInput = document.getElementById('username');
 const otpGroup = document.getElementById('otpGroup');
 const otpInput = document.getElementById('otp');
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const navLinks = document.querySelector('.nav-links');
+
+// Mobile Menu Toggle
+if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        const icon = mobileMenuToggle.querySelector('i');
+        if (navLinks.classList.contains('active')) {
+            icon.className = "fa-solid fa-xmark";
+        } else {
+            icon.className = "fa-solid fa-bars-staggered";
+        }
+    });
+}
+
+// Close mobile menu on link click
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+        if (mobileMenuToggle) {
+            mobileMenuToggle.querySelector('i').className = "fa-solid fa-bars-staggered";
+        }
+    });
+});
 
 let isLoginMode = true;
 let isStep1 = true;

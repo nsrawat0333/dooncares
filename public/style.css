@@ -126,6 +126,16 @@ h1, h2, h3, h4 {
 .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--secondary-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; }
 .hidden { display: none !important; }
 
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
 /* Modern Split Hero Section */
 .hero-modern {
     display: flex;
@@ -454,11 +464,36 @@ h1, h2, h3, h4 {
     .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
 }
 @media (max-width: 768px) {
+    .mobile-menu-toggle { display: block; }
+    
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        flex-direction: column;
+        padding: 2rem;
+        gap: 1.5rem;
+        box-shadow: var(--shadow-md);
+        transform: translateY(-150%);
+        transition: var(--transition);
+        z-index: 999;
+    }
+    
+    .nav-links.active {
+        transform: translateY(0);
+    }
+
     .hero-content-left h1 { font-size: 2.5rem; }
-    .nav-links { display: none; }
     .form-row { flex-direction: column; gap: 0; }
     .booking-container { padding: 2rem; }
     .gallery-masonry { grid-template-columns: 1fr; }
     .gallery-item.large { grid-column: span 1; grid-row: span 1; }
     .footer-grid { grid-template-columns: 1fr; }
+    
+    /* General spacing for mobile */
+    .section-header h2 { font-size: 2rem; }
+    .stats-container { grid-template-columns: 1fr; }
+    .hero-image-right { height: 300px; }
 }
