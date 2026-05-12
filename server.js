@@ -190,42 +190,43 @@ app.post('/api/bookings', async (req, res) => {
 
     console.log(`[DB SUCCESS] Booking created: ${booking_id} for ${userEmail}`);
 
-    // 1. Send emails FIRST to ensure Render doesn't kill the process
-    try {
-        console.log(`[EMAIL] Attempting to send admin notification to: ${process.env.EMAIL_USER}`);
-        await transporter.sendMail({
-            from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER, 
-            subject: `New Booking: ${service} by ${name}`,
-            html: `
-                <h2>New Booking Received!</h2>
-                <p><strong>Name:</strong> ${name}</p>
-                <p><strong>Phone:</strong> ${phone}</p>
-                <p><strong>Service:</strong> ${service}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Address:</strong> ${address}</p>
-                <p><strong>User Email:</strong> ${userEmail}</p>
-            `,
-        });
-        console.log(`[EMAIL SUCCESS] Admin notification sent.`);
+    // 1. Respond immediately so the user doesn't wait!
+    res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
 
-        if (userEmail && userEmail !== 'Guest') {
-            console.log(`[EMAIL] Attempting to send user confirmation to: ${userEmail}`);
+    // 2. Send emails in the background (Fast for the user!)
+    (async () => {
+        try {
+            console.log(`[EMAIL] Attempting to send admin notification to: ${process.env.EMAIL_USER}`);
             await transporter.sendMail({
                 from: `"Home Solution" <${process.env.EMAIL_USER}>`,
-                to: userEmail,
-                subject: `Booking Confirmed: ${service}`,
-                html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
+                to: process.env.EMAIL_USER, 
+                subject: `New Booking: ${service} by ${name}`,
+                html: `
+                    <h2>New Booking Received!</h2>
+                    <p><strong>Name:</strong> ${name}</p>
+                    <p><strong>Phone:</strong> ${phone}</p>
+                    <p><strong>Service:</strong> ${service}</p>
+                    <p><strong>Date:</strong> ${date}</p>
+                    <p><strong>Address:</strong> ${address}</p>
+                    <p><strong>User Email:</strong> ${userEmail}</p>
+                `,
             });
-            console.log(`[EMAIL SUCCESS] User confirmation sent.`);
-        }
-    } catch (emailErr) {
-        console.error("[EMAIL ERROR] Failed to send booking email:", emailErr);
-        // We continue anyway so the user knows their booking was at least saved in the DB
-    }
+            console.log(`[EMAIL SUCCESS] Admin notification sent.`);
 
-    // 2. Now respond to the user
-    res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
+            if (userEmail && userEmail !== 'Guest') {
+                console.log(`[EMAIL] Attempting to send user confirmation to: ${userEmail}`);
+                await transporter.sendMail({
+                    from: `"Home Solution" <${process.env.EMAIL_USER}>`,
+                    to: userEmail,
+                    subject: `Booking Confirmed: ${service}`,
+                    html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
+                });
+                console.log(`[EMAIL SUCCESS] User confirmation sent.`);
+            }
+        } catch (emailErr) {
+            console.error("[EMAIL ERROR] Failed to send booking email:", emailErr);
+        }
+    })();
 });
 
 // Get Bookings (Admin)
