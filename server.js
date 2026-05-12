@@ -184,9 +184,11 @@ app.post('/api/bookings', async (req, res) => {
         .insert([{ booking_id, name, phone, address, service, date, userEmail, status }]);
 
     if (error) {
-        console.error("Booking error:", error);
+        console.error("[DB ERROR] Booking Table Insert Error:", JSON.stringify(error, null, 2));
         return res.status(500).json({ error: 'Database error' });
     }
+
+    console.log(`[DB SUCCESS] Booking created: ${booking_id} for ${email || userEmail}`);
 
     // 1. Respond immediately so the user doesn't wait!
     res.status(201).json({ message: 'Booking created successfully', booking_id: booking_id });
@@ -194,6 +196,7 @@ app.post('/api/bookings', async (req, res) => {
             // 2. Send emails in the background
             (async () => {
                 try {
+                    console.log(`[EMAIL] Attempting to send admin notification to: ${process.env.EMAIL_USER}`);
                     await transporter.sendMail({
                         from: `"Home Solution" <${process.env.EMAIL_USER}>`,
                         to: process.env.EMAIL_USER, 
@@ -208,17 +211,22 @@ app.post('/api/bookings', async (req, res) => {
                             <p><strong>User Email:</strong> ${userEmail}</p>
                         `,
                     });
+                    console.log(`[EMAIL SUCCESS] Admin notification sent.`);
 
                     if (userEmail && userEmail !== 'Guest') {
+                        console.log(`[EMAIL] Attempting to send user confirmation to: ${userEmail}`);
                         await transporter.sendMail({
                             from: `"Home Solution" <${process.env.EMAIL_USER}>`,
                             to: userEmail,
                             subject: `Booking Confirmed: ${service}`,
                             html: `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`,
                         });
+                        console.log(`[EMAIL SUCCESS] User confirmation sent.`);
+                    } else {
+                        console.log(`[EMAIL SKIP] User email is Guest or missing, skipping user confirmation.`);
                     }
                 } catch (emailErr) {
-                    console.error("Failed to send booking email:", emailErr);
+                    console.error("[EMAIL ERROR] Failed to send booking email:", emailErr);
                 }
             })();
 });
