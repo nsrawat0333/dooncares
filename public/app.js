@@ -151,8 +151,13 @@ authForm.addEventListener('submit', async (e) => {
                 body: JSON.stringify({ email, username, otp })
             });
             if (res.ok) {
-                showToast('Account created successfully! Please sign in.');
-                toggleAuthBtn.click(); // Switch to login mode
+                const data = await res.json();
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userEmail', data.email);
+                showToast('Account created and logged in successfully!', 'success');
+                checkAuthState();
+                authModal.classList.remove('active');
+                authForm.reset();
             } else {
                 const data = await res.json();
                 throw new Error(data.error || 'Authentication failed');

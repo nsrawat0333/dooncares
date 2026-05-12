@@ -112,7 +112,17 @@ app.post('/api/auth/signup', async (req, res) => {
         }
         
         console.log(`[DB SUCCESS] User profile created in public.users for ${email}`);
-        res.status(201).json({ message: 'User created successfully', user_id: user_id });
+        
+        // Generate token for automatic login
+        const token = jwt.sign({ id: user_id, email: email }, SECRET_KEY, { expiresIn: '24h' });
+        
+        res.status(201).json({ 
+            message: 'User created successfully', 
+            token, 
+            email, 
+            username, 
+            user_id 
+        });
     } catch (error) {
         console.error("[SERVER ERROR] Signup Catch Block:", error);
         res.status(500).json({ error: 'Server error' });
