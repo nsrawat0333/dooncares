@@ -313,6 +313,85 @@ app.get('/api/partner', async (req, res) => {
 });
 
 
+// --- Feedback Routes ---
+const fs = require('fs');
+const FEEDBACK_FILE = path.join(__dirname, 'feedback.json');
+
+function saveFeedbackLocally(feedbackItem) {
+    try {
+        let feedbacks = [];
+        if (fs.existsSync(FEEDBACK_FILE)) {
+            const fileContent = fs.readFileSync(FEEDBACK_FILE, 'utf8');
+            feedbacks = JSON.parse(fileContent);
+        }
+        feedbacks.push({
+            id: 'FB_' + crypto.randomBytes(4).toString('hex'),
+            ...feedbackItem,
+            createdAt: new Date().toISOString()
+        });
+        fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(feedbacks, null, 2));
+        console.log('[LOCAL FEEDBACK] Feedback saved locally.');
+    } catch (err) {
+        console.error('[LOCAL FEEDBACK ERROR] Failed to save feedback locally:', err);
+    }
+}
+
+app.post('/api/feedback', async (req, res) => {
+    const { rating, comment } = req.body;
+    if (!rating) return res.status(400).json({ error: 'Rating is required' });
+
+    const feedbackItem = { rating: parseInt(rating), comment };
+
+    try {
+        const { error } = await supabase
+            .from('feedback')
+            .insert([{ rating: feedbackItem.rating, comment: feedbackItem.comment }]);
+        
+        if (error) {
+            console.warn('[DB WARNING] Supabase feedback insert failed, saving locally:', error.message);
+            saveFeedbackLocally(feedbackItem);
+        } else {
+            console.log('[DB SUCCESS] Feedback saved to Supabase');
+        }
+    } catch (dbErr) {
+        console.warn('[DB EXCEPTION] Supabase feedback insert error, saving locally:', dbErr.message);
+        saveFeedbackLocally(feedbackItem);
+    }
+
+    res.status(201).json({ message: 'Feedback submitted successfully' });
+});
+
+app.get('/api/feedback', async (req, res) => {
+    let supabaseFeedbacks = [];
+    try {
+        const { data, error } = await supabase
+            .from('feedback')
+            .select('*')
+            .order('createdAt', { ascending: false });
+        if (!error && data) {
+            supabaseFeedbacks = data;
+        }
+    } catch (err) {
+        console.warn('[DB ERROR] Failed to fetch feedback from Supabase:', err.message);
+    }
+
+    let localFeedbacks = [];
+    try {
+        if (fs.existsSync(FEEDBACK_FILE)) {
+            localFeedbacks = JSON.parse(fs.readFileSync(FEEDBACK_FILE, 'utf8'));
+        }
+    } catch (err) {
+        console.error('[LOCAL ERROR] Failed to read local feedback:', err);
+    }
+
+    const allFeedback = [...supabaseFeedbacks, ...localFeedbacks].sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    res.json(allFeedback);
+});
+
+
 app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
 });

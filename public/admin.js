@@ -24,6 +24,7 @@ function checkAdminAuthState() {
         adminLoginView.classList.add('hidden');
         adminDashboardView.classList.remove('hidden');
         fetchBookings();
+        fetchFeedback();
     } else {
         adminLoginView.classList.remove('hidden');
         adminDashboardView.classList.add('hidden');
@@ -107,5 +108,53 @@ async function fetchBookings() {
     } catch (error) {
         console.error("Error fetching bookings: ", error);
         showToast("Failed to fetch bookings.", "error");
+    }
+}
+
+// Fetch Feedback
+async function fetchFeedback() {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`${API_URL}/feedback`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch feedback");
+        
+        const feedbacks = await response.json();
+        const feedbackTableBody = document.getElementById('feedbackTableBody');
+        
+        feedbackTableBody.innerHTML = '';
+        if(feedbacks.length === 0) {
+            feedbackTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No feedback received yet.</td></tr>`;
+            return;
+        }
+
+        feedbacks.forEach((data) => {
+            const tr = document.createElement('tr');
+            
+            // Build stars
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= data.rating) {
+                    stars += '<i class="fa-solid fa-star" style="color: #f6ad55; margin-right: 2px;"></i>';
+                } else {
+                    stars += '<i class="fa-regular fa-star" style="color: #cbd5e0; margin-right: 2px;"></i>';
+                }
+            }
+            
+            const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A';
+            
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${stars} (${data.rating}/5)</td>
+                <td>${data.comment || 'N/A'}</td>
+            `;
+            feedbackTableBody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error("Error fetching feedback: ", error);
     }
 }

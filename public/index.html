@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Solution</title>
+    <title>DOON CLEAN & CARES</title>
     <link rel="stylesheet" href="style.css">
     <!-- Google Fonts -->
     <link
@@ -19,7 +19,12 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                Home<span class="logo-highlight">Solution.</span>
+                DOON CLEAN <span class="logo-highlight">& CARES</span>
+            </div>
+            <div class="search-bar-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="navSearchInput" placeholder="Search services (e.g. Sofa, Plumbing)...">
+                <button id="searchClearBtn" class="search-clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="nav-links">
                 <a href="#services">Services</a>
@@ -56,7 +61,7 @@
         </div>
         <div class="hero-image-right">
             <!-- Using the user's provided real image of the team/cleaning -->
-            <img src="assets/hero.jpg" alt="Home Solution Team at Work" class="hero-img-main"
+            <img src="assets/hero.jpg" alt="Doon Clean & Cares Team at Work" class="hero-img-main"
                 onerror="this.src='https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&q=80'">
             <div class="experience-badge">
                 <div class="exp-number">5+</div>
@@ -80,11 +85,6 @@
                 <h3 class="counter" data-target="50">50</h3>
                 <p>Expert Professionals</p>
             </div>
-            <div class="stat-box">
-                <h3>4.9<i class="fa-solid fa-star"
-                        style="color: var(--accent); font-size: 1.5rem; margin-left:5px;"></i></h3>
-                <p>Customer Rating</p>
-            </div>
         </div>
     </section>
 
@@ -102,11 +102,12 @@
                 <div class="scroll-hint">Swipe <i class="fa-solid fa-arrow-right-long"></i></div>
             </div>
             <div class="horizontal-scroll">
-                <div class="service-card" onclick="selectService('Carpet Cleaning')">
+                <div class="service-card" onclick="openGallery('Carpet Cleaning')">
                     <div class="img-wrapper">
-                        <!-- Using user's real carpet cleaning image -->
-                        <img src="assets/carpet_cleaning_real.jpg" alt="Professional Carpet Cleaning" class="service-img"
-                            onerror="this.src='assets/carpet_cleaning.jpg'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/carpet_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
@@ -114,22 +115,25 @@
                         <p>Deep vacuuming and shampooing to restore your carpets.</p>
                     </div>
                 </div>
-                <div class="service-card" onclick="selectService('Sofa Cleaning')">
+                <div class="service-card" onclick="openGallery('Sofa & Mattress Cleaning')">
                     <div class="img-wrapper">
-                        <!-- Using user's real sofa cleaning image -->
-                        <img src="assets/sofa_cleaning_real.jpg" alt="Sofa Cleaning" class="service-img"
-                            onerror="this.src='assets/sofa_cleaning.jpg'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/sofa_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
-                        <h4>Sofa & Upholstery Care</h4>
-                        <p>Advanced stain removal and fabric rejuvenation.</p>
+                        <h4>Sofa & Mattress Cleaning</h4>
+                        <p>Deep cleaning, sanitization, and dust mite removal for sofas & mattresses.</p>
                     </div>
                 </div>
-                <div class="service-card" onclick="selectService('Deep Cleaning')">
+                <div class="service-card" onclick="openGallery('Full Home Deep Clean')">
                     <div class="img-wrapper">
-                        <img src="assets/full_home_cleaning_real.jpg" alt="Professional Full Home Deep Clean" class="service-img"
-                            onerror="this.src='assets/deep_cleaning.jpg'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/deep_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
@@ -137,15 +141,30 @@
                         <p>Intensive top-to-bottom cleaning for absolute hygiene.</p>
                     </div>
                 </div>
-                <div class="service-card" onclick="selectService('Washroom Cleaning')">
+                <div class="service-card" onclick="openGallery('Washroom Detail')">
                     <div class="img-wrapper">
-                        <img src="assets/washroom_cleaning_real.jpg" alt="Professional Washroom Sanitization" class="service-img"
-                            onerror="this.src='https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500&q=80'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/bathroom_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
                         <h4>Washroom Detail</h4>
                         <p>Complete sanitization and hard-water stain removal.</p>
+                    </div>
+                </div>
+                <div class="service-card" onclick="openGallery('Kitchen Deep Cleaning')">
+                    <div class="img-wrapper">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/kitchen_video.mp4" type="video/mp4">
+                        </video>
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Kitchen Deep Cleaning</h4>
+                        <p>Thorough degreasing, sanitization of stoves, tiles & chimney.</p>
                     </div>
                 </div>
                 <div class="scroll-spacer"></div>
@@ -158,11 +177,12 @@
                 <h3>Maintenance & Repairs</h3>
             </div>
             <div class="horizontal-scroll">
-                <div class="service-card" onclick="selectService('Drainage & Sewer')">
+                <div class="service-card" onclick="openGallery('Drainage & Sewer')">
                     <div class="img-wrapper">
-                        <!-- Using user's real sewer/drain cleaning image -->
-                        <img src="assets/drainage_real.jpg" alt="Drainage and Sewer Cleaning" class="service-img"
-                            onerror="this.src='assets/drainage_cleaning.jpg'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/drainage_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
@@ -170,31 +190,25 @@
                         <p>Professional unclogging and deep pipe cleaning.</p>
                     </div>
                 </div>
-                <div class="service-card" onclick="selectService('Plumbing')">
+                <div class="service-card" onclick="openGallery('Plumbing & Electrical')">
                     <div class="img-wrapper">
-                        <img src="assets/plumbing_real.jpg"
-                            alt="Plumbing" class="service-img" onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&q=80'">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/electrical_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
-                        <h4>Plumbing Experts</h4>
-                        <p>Rapid response for leaks, fixtures, and pipe repairs.</p>
+                        <h4>Plumbing & Electrical</h4>
+                        <p>Certified repairs, wiring installs, leak fixes, and emergency support.</p>
                     </div>
                 </div>
-                <div class="service-card" onclick="selectService('Electrician')">
+                <div class="service-card" onclick="openGallery('Tank Sanitization')">
                     <div class="img-wrapper">
-                        <img src="assets/electrical_real.jpg"
-                            alt="Electrician" class="service-img" onerror="this.src='https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=500&q=80'">
-                        <div class="card-overlay"></div>
-                    </div>
-                    <div class="service-content">
-                        <h4>Electrical Safe</h4>
-                        <p>Certified electricians for wiring and appliance installs.</p>
-                    </div>
-                </div>
-                <div class="service-card" onclick="selectService('Water Tank Cleaning')">
-                    <div class="img-wrapper">
-                        <img src="assets/tank_cleaning.jpg" alt="Tank Cleaning" class="service-img">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/tank_video.mp4" type="video/mp4">
+                        </video>
                         <div class="card-overlay"></div>
                     </div>
                     <div class="service-content">
@@ -202,41 +216,20 @@
                         <p>Thorough cleaning of overhead & underground reservoirs.</p>
                     </div>
                 </div>
+                <div class="service-card" onclick="openGallery('Fogging & Pest Treatment')">
+                    <div class="img-wrapper">
+                        <!-- Using autoplaying looping video -->
+                        <video autoplay muted loop playsinline class="service-video">
+                            <source src="assets/fogging_video.mp4" type="video/mp4">
+                        </video>
+                        <div class="card-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <h4>Fogging & Pest Treatment</h4>
+                        <p>Professional pest control, disinfection, and thermal fogging.</p>
+                    </div>
+                </div>
                 <div class="scroll-spacer"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Real Gallery / Proof of Work Section -->
-    <section id="gallery" class="gallery-section">
-        <div class="section-header">
-            <h2>Real Results in Dehradun</h2>
-            <p>Don't just take our word for it. See our team in action.</p>
-        </div>
-        <div class="gallery-masonry">
-            <div class="gallery-item large">
-                <img src="assets/carpet_cleaning_real.jpg" alt="Carpet Cleaning Work" onerror="this.src='assets/carpet_cleaning.jpg'">
-                <div class="gallery-caption">Carpet Revitalization</div>
-            </div>
-            <div class="gallery-item">
-                <img src="assets/sofa_cleaning_real.jpg" alt="Sofa Cleaning Work" onerror="this.src='assets/sofa_cleaning.jpg'">
-                <div class="gallery-caption">Deep Sofa Shampooing</div>
-            </div>
-            <div class="gallery-item">
-                <img src="assets/plumbing_real.jpg" alt="Plumbing Work" onerror="this.src='https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=500&q=80'">
-                <div class="gallery-caption">Expert Plumbing Solutions</div>
-            </div>
-            <div class="gallery-item">
-                <img src="assets/electrical_real.jpg" alt="Electrical Work" onerror="this.src='https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=500&q=80'">
-                <div class="gallery-caption">Safe Electrical Installs</div>
-            </div>
-            <div class="gallery-item large">
-                <img src="assets/full_home_cleaning_real.jpg" alt="Full Home Deep Clean" onerror="this.src='assets/deep_cleaning.jpg'">
-                <div class="gallery-caption">Full Home Transformation</div>
-            </div>
-            <div class="gallery-item">
-                <img src="assets/drainage_real.jpg" alt="Drainage Cleaning Work" onerror="this.src='assets/drainage_cleaning.jpg'">
-                <div class="gallery-caption">Heavy Duty Drain Cleaning</div>
             </div>
         </div>
     </section>
@@ -245,7 +238,7 @@
     <section class="why-us-section">
         <div class="why-us-container">
             <div class="why-us-content">
-                <h2>The Home Solution Standard.</h2>
+                <h2>The Doon Clean & Cares Standard.</h2>
                 <p>We don't just clean; we care for your space as if it were our own. Our rigorous vetting process
                     ensures only the top 1% of professionals enter your home.</p>
                 <div class="features-list">
@@ -273,8 +266,7 @@
                 </div>
             </div>
             <div class="why-us-image">
-                <img src="assets/team.jpg" alt="Clean Home Interior"
-                    onerror="this.src='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=800&q=80'">
+                <img src="assets/standard_collage.jpg" alt="The Doon Clean & Cares Standard">
             </div>
         </div>
     </section>
@@ -325,18 +317,19 @@
                                 <optgroup label="Cleaning Services">
                                     <option value="House Keeping">House Keeping</option>
                                     <option value="Deep Cleaning">Deep Cleaning</option>
-                                    <option value="Sofa Cleaning">Sofa Cleaning</option>
+                                    <option value="Sofa & Mattress Cleaning">Sofa & Mattress Cleaning</option>
                                     <option value="Carpet Cleaning">Carpet Cleaning</option>
                                     <option value="Washroom Cleaning">Washroom Cleaning</option>
+                                    <option value="Kitchen Cleaning">Kitchen Cleaning</option>
                                     <option value="House Sanitization">House Sanitization</option>
                                 </optgroup>
                                 <optgroup label="Maintenance Services">
                                     <option value="Water Tank Cleaning">Water Tank Cleaning</option>
                                     <option value="Drainage & Sewer">Drainage & Sewer Cleaning</option>
+                                    <option value="Fogging & Pest Treatment">Fogging & Pest Treatment</option>
                                 </optgroup>
                                 <optgroup label="Repair Services">
-                                    <option value="Plumbing">Plumbing</option>
-                                    <option value="Electrician">Electrician</option>
+                                    <option value="Plumbing & Electrical">Plumbing & Electrical</option>
                                     <option value="Carpenter">Carpenter</option>
                                 </optgroup>
                                 <optgroup label="Special Services">
@@ -361,6 +354,29 @@
             </form>
             <div class="secure-badge">
                 <i class="fa-solid fa-lock"></i> Secure & Spam-free. Pay after the service is completed.
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="feedback-section">
+        <div class="feedback-container">
+            <div class="feedback-card">
+                <h2>We value your opinion.</h2>
+                <p class="feedback-question">How would you rate your overall experience?</p>
+                <div class="star-rating" id="starRating">
+                    <i class="fa-regular fa-star" data-value="1"></i>
+                    <i class="fa-regular fa-star" data-value="2"></i>
+                    <i class="fa-regular fa-star" data-value="3"></i>
+                    <i class="fa-regular fa-star" data-value="4"></i>
+                    <i class="fa-regular fa-star" data-value="5"></i>
+                </div>
+                <p class="feedback-prompt">Kindly take a moment to tell us what you think.</p>
+                <form id="feedbackForm">
+                    <textarea id="feedbackComment" required placeholder="Type your feedback here..." rows="3"></textarea>
+                    <input type="hidden" id="ratingValue" value="0">
+                    <button type="submit" class="btn-feedback-submit">Share my feedback</button>
+                </form>
             </div>
         </div>
     </section>
@@ -392,7 +408,7 @@
     <footer id="contact" class="footer">
         <div class="footer-grid">
             <div class="footer-brand">
-                <h3>Home<span class="logo-highlight">Solution.</span></h3>
+                <h3>DOON CLEAN <span class="logo-highlight">& CARES</span></h3>
                 <p>Elevating the standard of home services in Dehradun through dedication, trust, and unparalleled
                     quality.</p>
                 <div class="social-links">
@@ -411,11 +427,11 @@
                     </div>
                     <div class="contact-line">
                         <i class="fa-solid fa-envelope"></i>
-                        <span>support@homesolution.com</span>
+                        <span>support@dooncares.in</span>
                     </div>
                     <div class="contact-line">
                         <i class="fa-solid fa-location-dot"></i>
-                        <span>123 Rajpur Road, Dehradun, Uttarakhand 248001</span>
+                        <span>Lal Pull, Patel Nagar, Dehradun</span>
                     </div>
                 </div>
             </div>
@@ -425,14 +441,14 @@
                 <!-- Embedded Google Map of Dehradun -->
                 <div class="map-container">
                     <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1m3!1d110204.74315252876!2d77.94709425170327!3d30.325409848522305!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390929c356c888af%3A0x4c3562c032518799!2sDehradun%2C%20Uttarakhand!5e0!3m2!1sen!2sin!4v1714500000000!5m2!1sen!2sin"
+                        src="https://maps.google.com/maps?q=Lal+Pull+Patel+Nagar+Dehradun&t=&z=14&ie=UTF8&iwloc=&output=embed"
                         style="border:0;" allowfullscreen="" loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Home Solution. All rights reserved. | <a href="admin.html">Admin
+            <p>&copy; 2026 DOON CLEAN & CARES. All rights reserved. | <a href="admin.html">Admin
                     Dashboard</a></p>
         </div>
     </footer>
@@ -484,6 +500,33 @@
     <!-- Loading Overlay -->
     <div id="loader" class="loader-overlay hidden">
         <div class="spinner"></div>
+    </div>
+
+    <!-- Clickable Gallery Modal -->
+    <div id="galleryModal" class="gallery-modal">
+        <div class="gallery-modal-content">
+            <span class="gallery-modal-close" onclick="closeGallery()">&times;</span>
+            <div class="gallery-modal-header">
+                <h2 id="galleryTitle">Service Gallery</h2>
+                <p id="gallerySubtitle">Real-world results from our professional services.</p>
+            </div>
+            <div id="galleryGrid" class="gallery-grid">
+                <!-- Dynamically populated grid of images -->
+            </div>
+            <div class="gallery-modal-footer">
+                <button id="galleryBookBtn" class="btn-primary large-btn">Book This Service Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <div class="lightbox-content-wrapper">
+            <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+            <button class="lightbox-nav lightbox-prev" onclick="prevLightboxImage()"><i class="fa-solid fa-chevron-left"></i></button>
+            <img id="lightboxImg" class="lightbox-img" src="" alt="Lightbox Image">
+            <button class="lightbox-nav lightbox-next" onclick="nextLightboxImage()"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
