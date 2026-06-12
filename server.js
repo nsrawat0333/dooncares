@@ -295,7 +295,29 @@ app.post('/api/partner', async (req, res) => {
         .insert([{ profession_id, name, phone, skill, status }]);
 
     if (error) return res.status(500).json({ error: 'Database error' });
+    
+    // 1. Respond immediately
     res.status(201).json({ message: 'Application submitted successfully', profession_id: profession_id });
+
+    // 2. Send email notification in the background
+    (async () => {
+        try {
+            console.log(`[EMAIL] Attempting to send partner application email via Resend to: ${process.env.EMAIL_USER}`);
+            const partnerEmailHtml = `
+                <h2>New Skilled Professional Application!</h2>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Phone:</strong> ${phone}</p>
+                <p><strong>Skill/Trade:</strong> ${skill}</p>
+            `;
+            
+            const adminRes = await sendResendEmail(process.env.EMAIL_USER, `New Partner Application: ${skill} - ${name}`, partnerEmailHtml);
+            if (adminRes.ok) {
+                console.log(`[EMAIL SUCCESS] Partner application notification sent via Resend.`);
+            }
+        } catch (emailErr) {
+            console.error("[EMAIL ERROR] Unexpected error in partner Resend flow:", emailErr);
+        }
+    })();
 });
 
 // Get Applications (Admin)
