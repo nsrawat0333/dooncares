@@ -530,6 +530,15 @@ bookingForm.addEventListener('submit', async (e) => {
 if (partnerForm) {
     partnerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const token = localStorage.getItem('token');
+        const userEmail = localStorage.getItem('userEmail');
+
+        if (!token || !userEmail) {
+            showToast('Please sign in to apply as a professional.', 'error');
+            authModal.classList.add('active');
+            return;
+        }
         
         const name = document.getElementById('partnerName').value;
         const phone = document.getElementById('partnerPhone').value;

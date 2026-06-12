@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 transporter.sendMail({
-    from: `"Home Solution Test" <${process.env.EMAIL_USER}>`,
+    from: `"Doon Clean & Cares Test" <${process.env.EMAIL_USER}>`,
     to: process.env.EMAIL_USER,
     subject: "Test Email from Node.js",
     text: "This is a test email.",

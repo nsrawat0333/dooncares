@@ -66,7 +66,7 @@ async function sendResendEmail(to, subject, html) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                from: 'Home Solution <onboarding@resend.dev>',
+                from: 'Doon Clean & Cares<onboarding@resend.dev>',
                 to: Array.isArray(to) ? to : [to],
                 subject: subject,
                 html: html
@@ -103,7 +103,7 @@ function authenticateToken(req, res, next) {
 app.post('/api/auth/send-otp', async (req, res) => {
     const { email } = req.body;
     console.log(`[AUTH] Send OTP request for: ${email}`);
-    
+
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -112,7 +112,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 
     const { error } = await supabase.auth.signInWithOtp({ email });
-    
+
     if (error) {
         console.error("[AUTH ERROR] Supabase Auth OTP Error:", JSON.stringify(error, null, 2));
         return res.status(400).json({ error: error.message });
@@ -126,9 +126,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
 app.post('/api/auth/signup', async (req, res) => {
     const { email, username, otp } = req.body;
     console.log(`[AUTH] Signup attempt for: ${email}, Username: ${username}`);
-    
+
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
-    
+
     if (authError) {
         console.error("[AUTH ERROR] Signup Verify Error:", JSON.stringify(authError, null, 2));
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
@@ -139,7 +139,7 @@ app.post('/api/auth/signup', async (req, res) => {
     try {
         const user_id = user.id; // Use Supabase Auth UUID
         console.log(`[DB] Inserting user into public.users table...`);
-        
+
         const { error } = await supabase
             .from('users')
             .insert([{ user_id, email, username }]); // Removed otp from here to fix missing column error
@@ -151,18 +151,18 @@ app.post('/api/auth/signup', async (req, res) => {
             }
             return res.status(500).json({ error: 'Database error' });
         }
-        
+
         console.log(`[DB SUCCESS] User profile created in public.users for ${email}`);
-        
+
         // Generate token for automatic login
         const token = jwt.sign({ id: user_id, email: email }, SECRET_KEY, { expiresIn: '24h' });
-        
-        res.status(201).json({ 
-            message: 'User created successfully', 
-            token, 
-            email, 
-            username, 
-            user_id 
+
+        res.status(201).json({
+            message: 'User created successfully',
+            token,
+            email,
+            username,
+            user_id
         });
     } catch (error) {
         console.error("[SERVER ERROR] Signup Catch Block:", error);
@@ -174,9 +174,9 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     const { email, otp } = req.body;
     console.log(`[AUTH] Login attempt for: ${email}`);
-    
+
     const { data: { user }, error: authError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
-    
+
     if (authError) {
         console.error("[AUTH ERROR] Login Verify Error:", JSON.stringify(authError, null, 2));
         return res.status(400).json({ error: authError.message || 'Invalid or expired OTP' });
@@ -219,7 +219,7 @@ app.post('/api/bookings', async (req, res) => {
     const { name, phone, address, service, date, userEmail } = req.body;
     const status = 'Pending';
     const booking_id = 'BKG_' + crypto.randomBytes(4).toString('hex');
-    
+
     const { error } = await supabase
         .from('bookings')
         .insert([{ booking_id, name, phone, address, service, date, userEmail, status }]);
@@ -247,7 +247,7 @@ app.post('/api/bookings', async (req, res) => {
                 <p><strong>Address:</strong> ${address}</p>
                 <p><strong>User Email:</strong> ${userEmail}</p>
             `;
-            
+
             const adminRes = await sendResendEmail(process.env.EMAIL_USER, `New Booking: ${service} by ${name}`, adminEmailHtml);
             if (adminRes.ok) {
                 console.log(`[EMAIL SUCCESS] Admin notification sent via Resend.`);
@@ -256,7 +256,7 @@ app.post('/api/bookings', async (req, res) => {
             if (userEmail && userEmail !== 'Guest') {
                 console.log(`[EMAIL] Attempting to send user confirmation via Resend to: ${userEmail}`);
                 const userEmailHtml = `<h3>Hi ${name}, your booking for ${service} on ${date} is confirmed!</h3><p>Our team will contact you shortly.</p>`;
-                
+
                 // Note: Resend's free tier only allows sending to your own email unless you verify a domain.
                 const userRes = await sendResendEmail(userEmail, `Booking Confirmed: ${service}`, userEmailHtml);
                 if (userRes.ok) {
@@ -289,13 +289,13 @@ app.post('/api/partner', async (req, res) => {
     const { name, phone, skill } = req.body;
     const status = 'New Applicant';
     const profession_id = 'PRO_' + crypto.randomBytes(4).toString('hex');
-    
+
     const { error } = await supabase
         .from('worker_applications')
         .insert([{ profession_id, name, phone, skill, status }]);
 
     if (error) return res.status(500).json({ error: 'Database error' });
-    
+
     // 1. Respond immediately
     res.status(201).json({ message: 'Application submitted successfully', profession_id: profession_id });
 
@@ -309,7 +309,7 @@ app.post('/api/partner', async (req, res) => {
                 <p><strong>Phone:</strong> ${phone}</p>
                 <p><strong>Skill/Trade:</strong> ${skill}</p>
             `;
-            
+
             const adminRes = await sendResendEmail(process.env.EMAIL_USER, `New Partner Application: ${skill} - ${name}`, partnerEmailHtml);
             if (adminRes.ok) {
                 console.log(`[EMAIL SUCCESS] Partner application notification sent via Resend.`);
@@ -368,7 +368,7 @@ app.post('/api/feedback', async (req, res) => {
         const { error } = await supabase
             .from('feedback')
             .insert([{ rating: feedbackItem.rating, comment: feedbackItem.comment }]);
-        
+
         if (error) {
             console.warn('[DB WARNING] Supabase feedback insert failed, saving locally:', error.message);
             saveFeedbackLocally(feedbackItem);
