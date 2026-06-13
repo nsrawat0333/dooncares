@@ -126,7 +126,7 @@ const galleryData = {
             'assets/deep_10.jpeg'
         ]
     },
-    'Washroom Detail': {
+    'Washroom Cleaning': {
         title: 'Washroom Detail Gallery',
         subtitle: 'Acid-free cleaning of tiles, deep scale removal from fittings, and total sanitation.',
         bookingValue: 'Washroom Cleaning',

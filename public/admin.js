@@ -6,6 +6,7 @@ const adminDashboardView = document.getElementById('adminDashboardView');
 const adminLoginForm = document.getElementById('adminLoginForm');
 const adminLogoutBtn = document.getElementById('adminLogoutBtn');
 const bookingsTableBody = document.getElementById('bookingsTableBody');
+const partnersTableBody = document.getElementById('partnersTableBody');
 const toast = document.getElementById('toast');
 
 // Admin Email defined in requirements
@@ -24,6 +25,7 @@ function checkAdminAuthState() {
         adminLoginView.classList.add('hidden');
         adminDashboardView.classList.remove('hidden');
         fetchBookings();
+        fetchPartnerApplications();
         fetchFeedback();
     } else {
         adminLoginView.classList.remove('hidden');
@@ -156,5 +158,44 @@ async function fetchFeedback() {
         });
     } catch (error) {
         console.error("Error fetching feedback: ", error);
+    }
+}
+
+// Fetch Partner Applications
+async function fetchPartnerApplications() {
+    try {
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch(`${API_URL}/partner`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error("Failed to fetch partner applications");
+        
+        const applications = await response.json();
+        
+        partnersTableBody.innerHTML = '';
+        if(applications.length === 0) {
+            partnersTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No applications found.</td></tr>`;
+            return;
+        }
+
+        applications.forEach((data) => {
+            const tr = document.createElement('tr');
+            const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A';
+            
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td><strong>${data.name}</strong></td>
+                <td><a href="tel:${data.phone}">${data.phone}</a></td>
+                <td>${data.skill}</td>
+                <td><span class="status-badge" style="background-color: #28a745; color: white;">${data.status || 'New Applicant'}</span></td>
+            `;
+            partnersTableBody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error("Error fetching partner applications: ", error);
+        showToast("Failed to fetch partner applications.", "error");
     }
 }
