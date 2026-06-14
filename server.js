@@ -24,12 +24,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Global email transporter (improves performance by not reconnecting on every request)
 const transporter = nodemailer.createTransport({
+    pool: true, // Reuse SMTP connections
     host: 'smtp.gmail.com',
     port: 465,
     secure: true, // Use SSL
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
+    connectionTimeout: 5000, // 5 seconds
+    greetingTimeout: 5000,
+    socketTimeout: 5000,
     tls: {
         rejectUnauthorized: false // Bypass some cloud firewall restrictions
     },
@@ -51,27 +52,16 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('Initialized Supabase client.');
 
-// Helper function to send email via Nodemailer SMTP (Gmail) first, with Resend fallback
+// Helper function to send email via Nodemailer SMTP or Resend API dynamically
 async function sendEmailNotification(to, subject, html) {
-    // 1. Try Nodemailer Gmail SMTP
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        try {
-            console.log(`[SMTP] Attempting to send email via SMTP to: ${to}`);
-            const info = await transporter.sendMail({
-                from: `"Doon Clean & Cares" <${process.env.EMAIL_USER}>`,
-                to: to,
-                subject: subject,
-                html: html
-            });
-            console.log(`[SMTP SUCCESS] Email sent to ${to}: ${info.response}`);
-            return { ok: true, data: info };
-        } catch (smtpErr) {
-            console.error("[SMTP ERROR] Nodemailer failed, trying Resend API fallback:", smtpErr.message);
-        }
-    }
+    const isRender = process.env.RENDER === 'true';
+    const hasSmtp = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+    const resendApiKey = process.env.RESEND_API_KEY || '';
+    const resendFrom = process.env.RESEND_FROM || 'Doon Clean & Cares <onboarding@resend.dev>';
 
-    // 2. Try Resend API fallback
-    if (resendApiKey) {
+    // Resend API helper
+    const sendViaResend = async () => {
+        if (!resendApiKey) return { ok: false, error: 'Resend API key not configured' };
         try {
             console.log(`[RESEND] Attempting to send email via Resend to: ${to}`);
             const response = await fetch('https://api.resend.com/emails', {
@@ -81,7 +71,7 @@ async function sendEmailNotification(to, subject, html) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    from: 'Doon Clean & Cares<onboarding@resend.dev>',
+                    from: resendFrom,
                     to: Array.isArray(to) ? to : [to],
                     subject: subject,
                     html: html
@@ -96,12 +86,54 @@ async function sendEmailNotification(to, subject, html) {
                 return { ok: false, error: data };
             }
         } catch (resendErr) {
-            console.error("[RESEND FETCH ERROR]", resendErr);
+            console.error("[RESEND FETCH ERROR]", resendErr.message || resendErr);
             return { ok: false, error: resendErr.message };
+        }
+    };
+
+    // SMTP Gmail helper
+    const sendViaSmtp = async () => {
+        if (!hasSmtp) return { ok: false, error: 'SMTP credentials not configured' };
+        try {
+            console.log(`[SMTP] Attempting to send email via SMTP to: ${to}`);
+            const info = await transporter.sendMail({
+                from: `"Doon Clean & Cares" <${process.env.EMAIL_USER}>`,
+                to: to,
+                subject: subject,
+                html: html
+            });
+            console.log(`[SMTP SUCCESS] Email sent to ${to}: ${info.response}`);
+            return { ok: true, data: info };
+        } catch (smtpErr) {
+            console.error("[SMTP ERROR] Nodemailer failed:", smtpErr.message);
+            return { ok: false, error: smtpErr.message };
+        }
+    };
+
+    // Environment-aware logic
+    if (isRender) {
+        console.log("[EMAIL] Running on Render. Prioritizing Resend HTTP API to bypass SMTP block.");
+        if (resendApiKey) {
+            const res = await sendViaResend();
+            if (res.ok) return res;
+        }
+        if (hasSmtp) {
+            const res = await sendViaSmtp();
+            if (res.ok) return res;
+        }
+    } else {
+        // Local/Other: Prioritize SMTP Gmail first, fallback to Resend API
+        if (hasSmtp) {
+            const res = await sendViaSmtp();
+            if (res.ok) return res;
+        }
+        if (resendApiKey) {
+            const res = await sendViaResend();
+            if (res.ok) return res;
         }
     }
 
-    return { ok: false, error: 'No email service configured' };
+    return { ok: false, error: 'No email service succeeded or was configured' };
 }
 
 // Middleware to verify token
@@ -135,57 +167,56 @@ app.post('/api/auth/send-otp', async (req, res) => {
         return res.status(400).json({ error: 'Please enter a valid email address.' });
     }
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    // Generate a fallback 6-digit OTP immediately and cache it
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = { otp, expiresAt: Date.now() + 10 * 60 * 1000 };
 
-    if (error) {
-        console.warn("[AUTH WARNING] Supabase Auth OTP Error, attempting Nodemailer SMTP fallback:", JSON.stringify(error, null, 2));
-        
-        // Generate a fallback 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        otpStore[email] = { otp, expiresAt: Date.now() + 10 * 60 * 1000 };
+    // Respond immediately to the frontend so the UI doesn't block!
+    res.json({ message: 'OTP sending initiated.' });
 
+    // Perform the sending in the background asynchronously
+    (async () => {
         try {
-            await transporter.sendMail({
-                from: `"Doon Clean & Cares" <${process.env.EMAIL_USER}>`,
-                to: email,
-                subject: `${otp} is your Doon Clean & Cares verification code`,
-                text: `Hello,\n\nYour verification code is: ${otp}\n\nPlease enter this code on the website to verify your account. This code is valid for 10 minutes.\n\nIf you did not request this code, you can safely ignore this email.\n\nBest regards,\nDoon Clean & Cares Team\nDehradun, Uttarakhand, India`,
-                html: `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <title>Verification Code</title>
-                    </head>
-                    <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; margin: 0;">
-                      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <h2 style="color: #333; margin-top: 0;">Welcome to Doon Clean & Cares!</h2>
-                        <p style="color: #666; font-size: 16px; line-height: 1.5;">To verify your email address, please use the following single-use verification code:</p>
-                        <div style="background-color: #f1f8ff; border: 1px solid #c8e1ff; padding: 15px; text-align: center; border-radius: 6px; margin: 20px 0;">
-                          <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #007bff; font-family: monospace;">${otp}</span>
-                        </div>
-                        <p style="color: #666; font-size: 14px; line-height: 1.5;">This code is valid for 10 minutes. If you did not make this request, you can safely ignore this email.</p>
-                        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-                        <p style="font-size: 12px; color: #999; text-align: center;">Doon Clean & Cares, Dehradun, Uttarakhand, India</p>
-                      </div>
-                    </body>
-                    </html>
-                `,
-                headers: {
-                    'X-Auto-Response-Suppress': 'OOF, AutoReply',
-                    'Precedence': 'bulk'
-                }
-            });
-            console.log(`[SMTP FALLBACK SUCCESS] OTP ${otp} sent to ${email}`);
-            return res.json({ message: 'OTP sent successfully (via fallback mailer).' });
-        } catch (smtpErr) {
-            console.error("[SMTP FALLBACK ERROR] Nodemailer failed to send email:", smtpErr);
-            return res.status(400).json({ error: 'Failed to send verification code. Please check your SMTP settings.' });
+            console.log(`[AUTH BG] Requesting Supabase OTP for ${email}...`);
+            const { error } = await supabase.auth.signInWithOtp({ email });
+            if (!error) {
+                console.log(`[AUTH BG SUCCESS] Supabase OTP email requested for ${email}`);
+                return;
+            }
+            console.warn("[AUTH BG WARNING] Supabase Auth OTP Error, trying local SMTP fallback:", error.message || error);
+        } catch (supErr) {
+            console.error("[AUTH BG EXCEPTION] Supabase Auth OTP Error:", supErr.message || supErr);
         }
-    }
 
-    console.log(`[AUTH SUCCESS] Supabase OTP email requested for ${email}`);
-    res.json({ message: 'OTP sent successfully via Supabase.' });
+        // Fallback: Send local OTP using the unified helper sendEmailNotification
+        try {
+            console.log(`[AUTH BG] Sending local OTP ${otp} to ${email} via unified email helper...`);
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <title>Verification Code</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; margin: 0;">
+                  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <h2 style="color: #333; margin-top: 0;">Welcome to Doon Clean & Cares!</h2>
+                    <p style="color: #666; font-size: 16px; line-height: 1.5;">To verify your email address, please use the following single-use verification code:</p>
+                    <div style="background-color: #f1f8ff; border: 1px solid #c8e1ff; padding: 15px; text-align: center; border-radius: 6px; margin: 20px 0;">
+                      <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #007bff; font-family: monospace;">${otp}</span>
+                    </div>
+                    <p style="color: #666; font-size: 14px; line-height: 1.5;">This code is valid for 10 minutes. If you did not make this request, you can safely ignore this email.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                    <p style="font-size: 12px; color: #999; text-align: center;">Doon Clean & Cares, Dehradun, Uttarakhand, India</p>
+                  </div>
+                </body>
+                </html>
+            `;
+            await sendEmailNotification(email, `${otp} is your Doon Clean & Cares verification code`, htmlContent);
+        } catch (sendErr) {
+            console.error("[AUTH BG ERROR] Failed to send fallback OTP email:", sendErr.message || sendErr);
+        }
+    })();
 });
 
 // Signup
@@ -194,57 +225,48 @@ app.post('/api/auth/signup', async (req, res) => {
     console.log(`[AUTH] Signup attempt for: ${email}, Username: ${username}`);
 
     let user_id = null;
-    let authError = null;
+    const stored = otpStore[email];
+    const isTestOtp = (otp === '123456');
+    let isLocalOtpVerified = isTestOtp || (stored && stored.otp === otp && stored.expiresAt > Date.now());
 
-    // 1. Try native Supabase OTP verify first (unless it is test OTP)
-    if (otp === '123456') {
-        console.log(`[AUTH TESTING] Bypassing native verifyOtp for signup with test OTP`);
+    // 1. Check local OTP first (instant)
+    if (isLocalOtpVerified) {
+        console.log(`[AUTH SUCCESS] Local/Test OTP verified for ${email}`);
+        if (stored) delete otpStore[email]; // Consume OTP
+
+        try {
+            // Check if user already exists in Supabase Auth
+            console.log(`[AUTH FALLBACK] Checking if user ${email} already exists in Supabase Auth...`);
+            const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+            if (listError) throw listError;
+
+            let authUser = users.find(u => u.email === email);
+
+            if (!authUser) {
+                console.log(`[AUTH FALLBACK] User not found. Creating user via Admin API...`);
+                const { data: { user: newAuthUser }, error: createError } = await supabase.auth.admin.createUser({
+                    email: email,
+                    email_confirm: true,
+                    user_metadata: { username }
+                });
+                if (createError) throw createError;
+                authUser = newAuthUser;
+            }
+
+            user_id = authUser.id;
+        } catch (fallbackErr) {
+            console.error("[AUTH FALLBACK ERROR] Failed to manage auth user:", fallbackErr);
+            return res.status(500).json({ error: 'Auth server error during fallback registration' });
+        }
     } else {
+        // 2. Try native Supabase OTP verify if not verified locally
+        console.log(`[AUTH] Trying native Supabase verifyOtp for: ${email}`);
         const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
         if (verifyError) {
-            console.warn("[AUTH WARNING] Supabase native verifyOtp failed, trying fallback store:", JSON.stringify(verifyError, null, 2));
-            authError = verifyError;
-        } else {
-            user_id = verifyData.user.id;
+            console.warn("[AUTH WARNING] Supabase native verifyOtp failed:", JSON.stringify(verifyError, null, 2));
+            return res.status(400).json({ error: verifyError.message || 'Invalid or expired OTP' });
         }
-    }
-
-    // 2. If native failed/bypassed, check local otpStore fallback or test OTP
-    if (!user_id) {
-        const stored = otpStore[email];
-        const isTestOtp = (otp === '123456');
-
-        if (isTestOtp || (stored && stored.otp === otp && stored.expiresAt > Date.now())) {
-            console.log(`[AUTH SUCCESS] Fallback/Test OTP verified for ${email}`);
-            if (stored) delete otpStore[email]; // Consume OTP
-
-            try {
-                // Check if user already exists in Supabase Auth
-                console.log(`[AUTH FALLBACK] Checking if user ${email} already exists in Supabase Auth...`);
-                const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-                if (listError) throw listError;
-
-                let authUser = users.find(u => u.email === email);
-
-                if (!authUser) {
-                    console.log(`[AUTH FALLBACK] User not found. Creating user via Admin API...`);
-                    const { data: { user: newAuthUser }, error: createError } = await supabase.auth.admin.createUser({
-                        email: email,
-                        email_confirm: true,
-                        user_metadata: { username }
-                    });
-                    if (createError) throw createError;
-                    authUser = newAuthUser;
-                }
-
-                user_id = authUser.id;
-            } catch (fallbackErr) {
-                console.error("[AUTH FALLBACK ERROR] Failed to manage auth user:", fallbackErr);
-                return res.status(500).json({ error: 'Auth server error during fallback registration' });
-            }
-        } else {
-            return res.status(400).json({ error: authError ? authError.message : 'Invalid or expired OTP' });
-        }
+        user_id = verifyData.user.id;
     }
 
     // 3. User is verified (either native or fallback), insert profile and return JWT token
@@ -290,73 +312,85 @@ app.post('/api/auth/login', async (req, res) => {
     console.log(`[AUTH] Login attempt for: ${email}`);
 
     let user_id = null;
-    let authError = null;
+    const stored = otpStore[email];
+    const isTestOtp = (otp === '123456');
+    let isLocalOtpVerified = isTestOtp || (stored && stored.otp === otp && stored.expiresAt > Date.now());
 
-    // 1. Try native Supabase OTP verify first (unless it is test OTP)
-    if (otp === '123456') {
-        console.log(`[AUTH TESTING] Bypassing native verifyOtp for login with test OTP`);
-    } else {
-        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
-        if (verifyError) {
-            console.warn("[AUTH WARNING] Supabase native verifyOtp failed, trying fallback store:", JSON.stringify(verifyError, null, 2));
-            authError = verifyError;
-        } else {
-            user_id = verifyData.user.id;
-        }
-    }
+    // 1. Check local OTP first (instant)
+    if (isLocalOtpVerified) {
+        console.log(`[AUTH SUCCESS] Local/Test OTP verified for ${email}`);
+        if (stored) delete otpStore[email]; // Consume OTP
 
-    // 2. If native failed/bypassed, check local otpStore fallback or test OTP
-    if (!user_id) {
-        const stored = otpStore[email];
-        const isTestOtp = (otp === '123456');
+        try {
+            // Fetch the user ID from Supabase Auth
+            const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+            if (listError) throw listError;
 
-        if (isTestOtp || (stored && stored.otp === otp && stored.expiresAt > Date.now())) {
-            console.log(`[AUTH SUCCESS] Fallback/Test OTP verified for ${email}`);
-            if (stored) delete otpStore[email]; // Consume OTP
-
-            try {
-                // Fetch the user ID from Supabase Auth
-                const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
-                if (listError) throw listError;
-
-                let authUser = users.find(u => u.email === email);
-                if (authUser) {
+            let authUser = users.find(u => u.email === email);
+            if (authUser) {
+                user_id = authUser.id;
+            } else {
+                // In test mode, if user is not in Supabase auth system, auto-create them to make testing smooth!
+                if (isTestOtp) {
+                    console.log(`[AUTH TESTING] User not found. Auto-creating user via Admin API for test mode...`);
+                    const { data: { user: newAuthUser }, error: createError } = await supabase.auth.admin.createUser({
+                        email: email,
+                        email_confirm: true,
+                        user_metadata: { username: email.split('@')[0] }
+                    });
+                    if (createError) throw createError;
+                    authUser = newAuthUser;
                     user_id = authUser.id;
                 } else {
-                    // In test mode, if user is not in Supabase auth system, auto-create them to make testing smooth!
-                    if (isTestOtp) {
-                        console.log(`[AUTH TESTING] User not found. Auto-creating user via Admin API for test mode...`);
-                        const { data: { user: newAuthUser }, error: createError } = await supabase.auth.admin.createUser({
-                            email: email,
-                            email_confirm: true,
-                            user_metadata: { username: email.split('@')[0] }
-                        });
-                        if (createError) throw createError;
-                        authUser = newAuthUser;
-                        user_id = authUser.id;
-                    } else {
-                        return res.status(400).json({ error: 'User not found in authentication system' });
-                    }
+                    return res.status(400).json({ error: 'User not found in authentication system' });
                 }
-            } catch (fallbackErr) {
-                console.error("[AUTH FALLBACK ERROR] Failed to fetch auth user:", fallbackErr);
-                return res.status(500).json({ error: 'Auth server error during fallback login' });
             }
-        } else {
-            return res.status(400).json({ error: authError ? authError.message : 'Invalid or expired OTP' });
+        } catch (fallbackErr) {
+            console.error("[AUTH FALLBACK ERROR] Failed to fetch auth user:", fallbackErr);
+            return res.status(500).json({ error: 'Auth server error during fallback login' });
         }
+    } else {
+        // 2. Try native Supabase OTP verify if not verified locally
+        console.log(`[AUTH] Trying native Supabase verifyOtp for: ${email}`);
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
+        if (verifyError) {
+            console.warn("[AUTH WARNING] Supabase native verifyOtp failed:", JSON.stringify(verifyError, null, 2));
+            return res.status(400).json({ error: verifyError.message || 'Invalid or expired OTP' });
+        }
+        user_id = verifyData.user.id;
     }
 
     console.log(`[AUTH SUCCESS] OTP Verified for ${email}. Fetching profile...`);
 
-    const { data: dbUser, error } = await supabase
+    let dbUser = null;
+    const { data: existingUser, error: fetchError } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
         .single();
 
-    if (error || !dbUser) {
-        console.error("[DB ERROR] Login Profile Fetch Error:", error ? JSON.stringify(error, null, 2) : "User profile not found");
+    if (!fetchError && existingUser) {
+        dbUser = existingUser;
+    } else if (isTestOtp && user_id) {
+        // Auto-create profile in users table for testing if it doesn't exist
+        console.log(`[AUTH TESTING] User profile not found. Auto-creating public.users profile for test mode...`);
+        const username = email.split('@')[0];
+        const { error: insertErr } = await supabase
+            .from('users')
+            .insert([{ user_id, email, username }]);
+        
+        if (!insertErr) {
+            const { data: retryUser } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .single();
+            dbUser = retryUser;
+        }
+    }
+
+    if (!dbUser) {
+        console.error("[DB ERROR] Login Profile Fetch Error:", fetchError ? JSON.stringify(fetchError, null, 2) : "User profile not found");
         return res.status(400).json({ error: 'User not found in database' });
     }
 
