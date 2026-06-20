@@ -24,13 +24,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Global email transporter (improves performance by not reconnecting on every request)
 const transporter = nodemailer.createTransport({
-    pool: true, // Reuse SMTP connections
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
-    connectionTimeout: 5000, // 5 seconds
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
+    pool: false, // Turn off pooling for maximum compatibility across environments
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true' || process.env.EMAIL_PORT === '465',
+    connectionTimeout: 15000, // 15 seconds
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
     tls: {
         rejectUnauthorized: false // Bypass some cloud firewall restrictions
     },
@@ -52,22 +52,72 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('Initialized Supabase client.');
 
-// Helper function to send email via Nodemailer SMTP or Resend API dynamically
+// Helper function to send email via Nodemailer SMTP, Apps Script, or Resend API dynamically
 async function sendEmailNotification(to, subject, html) {
     const isRender = process.env.RENDER === 'true';
     const hasSmtp = process.env.EMAIL_USER && process.env.EMAIL_PASS;
-    const resendApiKey = process.env.RESEND_API_KEY || '';
-    const resendFrom = process.env.RESEND_FROM || 'Doon Clean & Cares <onboarding@resend.dev>';
+    const hasAppsScript = !!process.env.GMAIL_APP_SCRIPT_URL;
+    const hasResend = !!process.env.RESEND_API_KEY;
 
-    // Resend API helper
+    // 1. SMTP Sender Helper
+    const sendViaSmtp = async () => {
+        if (!hasSmtp) return { ok: false, error: 'SMTP credentials not configured' };
+        try {
+            console.log(`[SMTP] Attempting to send email via SMTP to: ${to}`);
+            const fromHeader = process.env.EMAIL_FROM || `"Doon Clean & Cares" <${process.env.EMAIL_USER}>`;
+            const info = await transporter.sendMail({
+                from: fromHeader,
+                to: to,
+                subject: subject,
+                html: html
+            });
+            console.log(`[SMTP SUCCESS] Email sent to ${to}: ${info.response}`);
+            return { ok: true, data: info };
+        } catch (smtpErr) {
+            console.error("[SMTP ERROR] Nodemailer failed:", smtpErr.message);
+            return { ok: false, error: smtpErr.message };
+        }
+    };
+
+    // 2. Google Apps Script HTTP Relay Helper
+    const sendViaAppsScript = async () => {
+        if (!hasAppsScript) return { ok: false, error: 'Apps Script URL not configured' };
+        try {
+            console.log(`[APPS SCRIPT] Attempting to relay email via Apps Script to: ${to}`);
+            const response = await fetch(process.env.GMAIL_APP_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: process.env.GMAIL_APP_SCRIPT_SECRET || 'dooncares_secure_pass_123',
+                    to: to,
+                    subject: subject,
+                    html: html
+                })
+            });
+            const data = await response.json();
+            if (response.ok && data.ok) {
+                console.log(`[APPS SCRIPT SUCCESS] Email relayed to ${to}`);
+                return { ok: true, data };
+            } else {
+                console.error("[APPS SCRIPT ERROR]", JSON.stringify(data, null, 2));
+                return { ok: false, error: data.error || 'Apps Script returned failure' };
+            }
+        } catch (scriptErr) {
+            console.error("[APPS SCRIPT FETCH ERROR]", scriptErr.message || scriptErr);
+            return { ok: false, error: scriptErr.message };
+        }
+    };
+
+    // 3. Resend HTTP API Helper
     const sendViaResend = async () => {
-        if (!resendApiKey) return { ok: false, error: 'Resend API key not configured' };
+        if (!hasResend) return { ok: false, error: 'Resend API key not configured' };
         try {
             console.log(`[RESEND] Attempting to send email via Resend to: ${to}`);
+            const resendFrom = process.env.RESEND_FROM || 'Doon Clean & Cares <onboarding@resend.dev>';
             const response = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${resendApiKey}`,
+                    'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -91,29 +141,14 @@ async function sendEmailNotification(to, subject, html) {
         }
     };
 
-    // SMTP Gmail helper
-    const sendViaSmtp = async () => {
-        if (!hasSmtp) return { ok: false, error: 'SMTP credentials not configured' };
-        try {
-            console.log(`[SMTP] Attempting to send email via SMTP to: ${to}`);
-            const info = await transporter.sendMail({
-                from: `"Doon Clean & Cares" <${process.env.EMAIL_USER}>`,
-                to: to,
-                subject: subject,
-                html: html
-            });
-            console.log(`[SMTP SUCCESS] Email sent to ${to}: ${info.response}`);
-            return { ok: true, data: info };
-        } catch (smtpErr) {
-            console.error("[SMTP ERROR] Nodemailer failed:", smtpErr.message);
-            return { ok: false, error: smtpErr.message };
-        }
-    };
-
-    // Environment-aware logic
+    // Environment-aware routing strategy
     if (isRender) {
-        console.log("[EMAIL] Running on Render. Prioritizing Resend HTTP API to bypass SMTP block.");
-        if (resendApiKey) {
+        console.log("[EMAIL] Running on Render. Prioritizing HTTP-based relay methods to bypass SMTP block.");
+        if (hasAppsScript) {
+            const res = await sendViaAppsScript();
+            if (res.ok) return res;
+        }
+        if (hasResend) {
             const res = await sendViaResend();
             if (res.ok) return res;
         }
@@ -122,12 +157,16 @@ async function sendEmailNotification(to, subject, html) {
             if (res.ok) return res;
         }
     } else {
-        // Local/Other: Prioritize SMTP Gmail first, fallback to Resend API
+        // Local/Other: Prioritize Gmail SMTP, then Apps Script Relay, then Resend API
         if (hasSmtp) {
             const res = await sendViaSmtp();
             if (res.ok) return res;
         }
-        if (resendApiKey) {
+        if (hasAppsScript) {
+            const res = await sendViaAppsScript();
+            if (res.ok) return res;
+        }
+        if (hasResend) {
             const res = await sendViaResend();
             if (res.ok) return res;
         }
