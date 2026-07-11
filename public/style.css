@@ -1188,4 +1188,134 @@ h1, h2, h3, h4 {
     }
 }
 
+/* About Us Section Styles */
+.about-section {
+    padding: 6rem 1rem;
+    background: var(--white);
+    border-top: 1px solid var(--border-color);
+}
+.about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 4rem;
+    align-items: center;
+}
+.about-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.about-badge {
+    display: inline-block;
+    align-self: flex-start;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    background: rgba(197, 168, 128, 0.05);
+    font-weight: 600;
+}
+.about-content h2 {
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    color: var(--primary-color);
+}
+.about-lead {
+    font-size: 1.15rem;
+    color: var(--dark-text);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+.about-content p {
+    color: var(--light-text);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+}
+.about-features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+.about-feature-box {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+.about-icon-wrapper {
+    background: rgba(197, 168, 128, 0.1);
+    color: var(--accent);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.about-feature-box h4 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--primary-color);
+}
+.about-feature-box p {
+    font-size: 0.88rem;
+    color: var(--light-text);
+    margin: 0;
+    line-height: 1.5;
+}
+.about-image {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    height: 500px;
+    box-shadow: var(--shadow-lg);
+}
+.about-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.about-image:hover img {
+    transform: scale(1.03);
+}
+
+/* Responsive adjustments for About Us */
+@media (max-width: 992px) {
+    .about-container {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+    .about-content h2 {
+        font-size: 2.2rem;
+    }
+    .about-image {
+        height: 380px;
+    }
+}
+@media (max-width: 576px) {
+    .about-features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .about-section {
+        padding: 4rem 1rem;
+    }
+    .about-image {
+        height: 280px;
+    }
+}
+
 
