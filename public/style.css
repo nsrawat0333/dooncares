@@ -1318,4 +1318,35 @@ h1, h2, h3, h4 {
     }
 }
 
+/*
+   ==========================================================================
+   ACCESSIBILITY & TECHNICAL SEO UTILITIES
+   ==========================================================================
+*/
+
+/* Screen-reader-only utility for hidden accessible labels (WCAG/A11y compliance) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Keyboard focus indicators for interactive elements to improve navigation accessibility */
+.service-card:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+.service-card:focus {
+    outline: none;
+}
+
+
 

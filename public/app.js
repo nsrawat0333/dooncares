@@ -310,6 +310,16 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Keyboard accessibility for service cards (trigger click on Enter or Space)
+document.addEventListener('keydown', (e) => {
+    if (e.target && e.target.classList.contains('service-card')) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.target.click();
+        }
+    }
+});
+
 // Close lightbox on click outside the image
 lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) {
