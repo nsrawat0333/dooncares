@@ -1,8 +1,8 @@
 import React from 'react';
-import { Phone, Mail, MapPin, Instagram, Facebook, MessageSquare } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram, Facebook, MessageSquare, Lock } from 'lucide-react';
 import { translations } from '../i18n';
 
-const Footer = ({ lang }) => {
+const Footer = ({ lang, onOpenAdmin }) => {
   const t = translations[lang] || translations.EN;
 
   return (
@@ -128,9 +128,18 @@ const Footer = ({ lang }) => {
 
       </div>
 
-      {/* Copyright Bottom Bar */}
-      <div className="max-w-7xl mx-auto pt-6 text-center text-xs text-slate-400 font-bold">
+      {/* Copyright Bottom Bar with Discrete Admin Link */}
+      <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-bold">
         <p>{t.copyright}</p>
+        
+        {/* Discrete Admin Portal Trigger */}
+        <button
+          onClick={onOpenAdmin}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white transition group"
+        >
+          <Lock className="w-3.5 h-3.5 text-[#B88E2F] group-hover:scale-110 transition-transform" />
+          <span>Admin Portal</span>
+        </button>
       </div>
     </footer>
   );

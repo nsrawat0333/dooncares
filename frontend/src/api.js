@@ -47,6 +47,26 @@ export const fetchBookings = async () => {
   }
 };
 
+export const deleteBooking = async (bookingId) => {
+  try {
+    const response = await api.delete(`/bookings/${bookingId}`);
+    return response.data;
+  } catch (err) {
+    console.error('Failed to delete booking:', err.message);
+    throw err;
+  }
+};
+
+export const markBookingCompleted = async (bookingId) => {
+  try {
+    const response = await api.put(`/bookings/${bookingId}/complete`);
+    return response.data;
+  } catch (err) {
+    console.error('Failed to update booking status:', err.message);
+    throw err;
+  }
+};
+
 export const createReview = async (reviewData) => {
   try {
     const response = await api.post('/reviews', reviewData);

@@ -8,9 +8,11 @@ import WhatsAppButton from './components/WhatsAppButton';
 import MobileBottomBar from './components/MobileBottomBar';
 import SEOKeywords from './components/SEOKeywords';
 import Footer from './components/Footer';
+import AdminModal from './components/AdminModal';
 
 function App() {
   const [lang, setLang] = useState('EN');
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   const scrollToBooking = () => {
     const el = document.getElementById('booking');
@@ -51,8 +53,11 @@ function App() {
       {/* 7. Sticky Mobile Bottom Action Bar (Call, WhatsApp, Book Now) */}
       <MobileBottomBar onBookClick={scrollToBooking} lang={lang} />
 
-      {/* 8. Footer */}
-      <Footer lang={lang} />
+      {/* 8. Footer with Discrete Admin Portal Button */}
+      <Footer lang={lang} onOpenAdmin={() => setIsAdminOpen(true)} />
+
+      {/* 9. Admin Portal Modal with Email & PIN authentication & Order UI Table */}
+      <AdminModal isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
     </div>
   );
 }
