@@ -165,7 +165,8 @@ const ServicesGallery = ({ onSelectService, lang }) => {
   };
 
   return (
-    <section id="services" className="py-20 px-4 max-w-7xl mx-auto bg-[#FCF8F3]">
+    <div id="services" className="scroll-mt-24">
+      <section id="gallery" className="py-20 px-4 max-w-7xl mx-auto bg-[#FCF8F3] scroll-mt-24">
       
       {/* Furniro Header */}
       <div className="text-center space-y-3 mb-14">
@@ -383,6 +384,7 @@ const ServicesGallery = ({ onSelectService, lang }) => {
       )}
 
     </section>
+    </div>
   );
 };
 
