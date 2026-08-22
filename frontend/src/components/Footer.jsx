@@ -128,18 +128,26 @@ const Footer = ({ lang, onOpenAdmin }) => {
 
       </div>
 
-      {/* Copyright Bottom Bar with Discrete Admin Link */}
-      <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-bold">
-        <p>{t.copyright}</p>
+      {/* Copyright Bottom Bar with Centered Admin Portal Link */}
+      <div className="max-w-7xl mx-auto pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-bold">
+        {/* Left: Copyright */}
+        <p className="text-center md:text-left">{t.copyright}</p>
         
-        {/* Discrete Admin Portal Trigger */}
-        <button
-          onClick={onOpenAdmin}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white transition group"
-        >
-          <Lock className="w-3.5 h-3.5 text-[#B88E2F] group-hover:scale-110 transition-transform" />
-          <span>Admin Portal</span>
-        </button>
+        {/* CENTER: Centered Admin Portal Button */}
+        <div className="flex items-center justify-center my-1 md:my-0">
+          <button
+            onClick={onOpenAdmin}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-[#B88E2F]/40 text-slate-300 hover:text-white transition shadow-md group"
+          >
+            <Lock className="w-4 h-4 text-[#B88E2F] group-hover:scale-110 transition-transform" />
+            <span className="font-bold text-xs tracking-wider">🔐 Admin Portal</span>
+          </button>
+        </div>
+
+        {/* Right: Security Badge */}
+        <div className="text-center md:text-right text-[11px] text-slate-500 font-medium">
+          DoonCares • Secure Database Access
+        </div>
       </div>
     </footer>
   );
