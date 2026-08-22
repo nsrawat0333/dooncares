@@ -13,7 +13,7 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
           
           {/* Logo with 3D Shield Emblem */}
           <a href="#" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-            <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform border-2 border-[#B88E2F]/40 bg-white flex-shrink-0">
+            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform border-2 border-[#B88E2F]/40 bg-white flex-shrink-0">
               <img
                 src="/logo.png"
                 alt="DoonCares Logo"
@@ -21,7 +21,7 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
               />
             </div>
             <div>
-              <span className="text-lg sm:text-2xl font-black tracking-tight text-[#333333] uppercase font-sans">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-[#333333] uppercase font-sans">
                 Doon<span className="text-[#B88E2F]">Cares</span>
               </span>
               <span className="block text-[8px] sm:text-[9px] uppercase tracking-widest text-[#B88E2F] font-bold -mt-1 flex items-center gap-0.5">
@@ -56,7 +56,7 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
               href="https://www.facebook.com/profile.php?id=100042846282350"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-bold"
+              className="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-bold mr-2"
               title="Follow DoonCares on Facebook"
             >
               <Facebook className="w-4 h-4" />
@@ -65,11 +65,11 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
           </div>
 
           {/* Actions: Call & Book Button + Language Switcher Toggle */}
-          <div className="hidden md:flex items-center gap-2.5">
+          <div className="hidden md:flex items-center gap-3">
             {/* Language Switcher Desktop */}
             <button
               onClick={() => setLang(lang === 'EN' ? 'HI' : 'EN')}
-              className="px-3 py-2 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#B88E2F] font-black text-xs border border-[#B88E2F]/40 flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#B88E2F] font-black text-xs border border-[#B88E2F]/40 flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap"
               title="Switch Language / भाषा बदलें"
             >
               <Globe className="w-4 h-4" />
@@ -79,18 +79,18 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
             {/* Call Us Button */}
             <a
               href="tel:+917310502324"
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#333333] text-xs font-extrabold border border-[#B88E2F]/40 shadow-sm transition-all whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#333333] text-sm font-extrabold border border-[#B88E2F]/40 shadow-sm transition-all whitespace-nowrap"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-[#B88E2F]" />
+              <PhoneCall className="w-4 h-4 text-[#B88E2F]" />
               <span>{t.callUs}</span>
             </a>
 
             {/* Book Now Button */}
             <button
               onClick={onBookClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl gold-gradient-btn font-extrabold text-xs shadow-md transition-all hover:scale-105 whitespace-nowrap"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl gold-gradient-btn font-extrabold text-sm shadow-md transition-all hover:scale-105 whitespace-nowrap"
             >
-              <CalendarCheck className="w-3.5 h-3.5" />
+              <CalendarCheck className="w-4 h-4" />
               <span>{t.bookNow}</span>
             </button>
           </div>
