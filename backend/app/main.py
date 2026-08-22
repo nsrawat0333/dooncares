@@ -19,11 +19,15 @@ app = FastAPI(
 # Enable CORS for Netlify frontend and local testing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production can restrict to specific Netlify URL if desired
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to DoonCares API", "docs": "/docs", "bookings": "/api/bookings", "reviews": "/api/reviews"}
 
 @app.get("/api/health")
 def health_check():
@@ -31,17 +35,20 @@ def health_check():
 
 # --- Booking Routes ---
 @app.post("/api/bookings", response_model=BookingOut, status_code=status.HTTP_201_CREATED)
+@app.post("/bookings", response_model=BookingOut, status_code=status.HTTP_201_CREATED)
 def create_new_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     if not booking.name or not booking.phone or not booking.date:
         raise HTTPException(status_code=400, detail="Name, Phone, and Date are required.")
     return crud.create_booking(db=db, booking_data=booking)
 
 @app.get("/api/bookings", response_model=List[BookingOut])
+@app.get("/bookings", response_model=List[BookingOut])
 def list_bookings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_bookings(db=db, skip=skip, limit=limit)
 
 # --- Review Routes ---
 @app.post("/api/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
+@app.post("/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
 def create_new_review(review: ReviewCreate, db: Session = Depends(get_db)):
     if not review.name or not review.comment:
         raise HTTPException(status_code=400, detail="Name and Comment are required.")
@@ -50,5 +57,6 @@ def create_new_review(review: ReviewCreate, db: Session = Depends(get_db)):
     return crud.create_review(db=db, review_data=review)
 
 @app.get("/api/reviews", response_model=List[ReviewOut])
+@app.get("/reviews", response_model=List[ReviewOut])
 def list_reviews(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_reviews(db=db, skip=skip, limit=limit)

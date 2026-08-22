@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Dynamic API Base URL detection:
 // 1. Reads from VITE_BACKEND_URL environment variable if set.
-// 2. Fallbacks to live Render production backend URL: https://dooncares.onrender.com
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://dooncares.onrender.com';
+// 2. Fallbacks to live Render production backend URL: https://dooncares.onrender.com/api
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://dooncares.onrender.com/api';
 
 const api = axios.create({
   baseURL: BACKEND_URL,
