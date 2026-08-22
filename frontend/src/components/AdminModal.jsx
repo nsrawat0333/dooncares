@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { fetchBookings, deleteBooking, markBookingCompleted } from '../api';
 
-const ADMIN_EMAIL = 'support@dooncares.in';
-const ADMIN_PIN = '7570';
-const ADMIN_PASSWORD = 'akash@#123shivam';
+const REQUIRED_EMAIL = 'support@dooncares.in';
+const REQUIRED_PIN = '7570';
+const REQUIRED_PASSWORD = 'akash@#123shivam';
 
 const AdminModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [pin, setPin] = useState('');
+  const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginError, setLoginError] = useState('');
   
@@ -42,16 +43,18 @@ const AdminModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     setLoginError('');
     const userEmail = email.trim().toLowerCase();
-    const userSecret = pin.trim();
+    const userPin = pin.trim();
+    const userPass = password.trim();
 
     if (
-      userEmail === ADMIN_EMAIL &&
-      (userSecret === ADMIN_PIN || userSecret === ADMIN_PASSWORD)
+      userEmail === REQUIRED_EMAIL &&
+      userPin === REQUIRED_PIN &&
+      userPass === REQUIRED_PASSWORD
     ) {
       setIsAuthenticated(true);
       setLoginError('');
     } else {
-      setLoginError('Invalid Email ID, PIN code or Password!');
+      setLoginError('Invalid Email ID, Security PIN code, or Password!');
     }
   };
 
@@ -59,6 +62,7 @@ const AdminModal = ({ isOpen, onClose }) => {
     setIsAuthenticated(false);
     setEmail('');
     setPin('');
+    setPassword('');
   };
 
   const promptDeleteConfirmation = (booking) => {
@@ -140,7 +144,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                 </div>
                 <h3 className="text-xl font-bold">Admin Login Required</h3>
                 <p className="text-sm text-gray-400 mt-1">
-                  Enter your Admin Email ID and Security PIN / Password to manage bookings.
+                  Enter your Admin Email ID, Security PIN code, and Password.
                 </p>
               </div>
 
@@ -167,28 +171,42 @@ const AdminModal = ({ isOpen, onClose }) => {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">
-                    Security PIN / Password
+                    Security PIN Code
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="Enter PIN or Password"
+                    placeholder="7570"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
                   />
                 </div>
 
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">
+                    Admin Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
+                  />
+                </div>
+
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-[#B88E2F] to-[#967123] hover:from-[#A27B27] hover:to-[#83621D] text-white font-bold rounded-xl shadow-lg transition"
+                  className="w-full py-3 bg-gradient-to-r from-[#B88E2F] to-[#967123] hover:from-[#A27B27] hover:to-[#83621D] text-white font-bold rounded-xl shadow-lg transition mt-2"
                 >
                   Unlock Admin Dashboard
                 </button>
               </form>
 
               <div className="mt-6 text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
-                Authorized Admin Credentials Configured 🔒
+                🔒 DoonCares Security Portal • Authorized Admin Only
               </div>
             </div>
           ) : (
