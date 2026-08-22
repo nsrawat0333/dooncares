@@ -3,11 +3,11 @@ import { MessageSquare } from 'lucide-react';
 
 const WhatsAppButton = () => {
   const phoneNumber = "917310502324";
-  const defaultText = encodeURIComponent("Hello Doon Clean & Cares! I want to inquire about your home cleaning services in Dehradun.");
+  const defaultText = encodeURIComponent("Hello DoonCares! I want to inquire about your home cleaning services in Dehradun.");
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${defaultText}`;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 group">
+    <div className="fixed bottom-20 right-6 sm:bottom-24 z-50 group">
       {/* Tooltip */}
       <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold whitespace-nowrap border border-slate-700 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
         Chat with us on WhatsApp 💬
