@@ -162,7 +162,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                   <input
                     type="email"
                     required
-                    placeholder="support@dooncares.in"
+                    placeholder="Enter Admin Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
@@ -176,7 +176,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                   <input
                     type="password"
                     required
-                    placeholder="7570"
+                    placeholder="Enter PIN Code"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
@@ -190,7 +190,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                   <input
                     type="password"
                     required
-                    placeholder="••••••••••••"
+                    placeholder="Enter Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
