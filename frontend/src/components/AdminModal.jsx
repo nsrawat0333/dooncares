@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchBookings, deleteBooking, markBookingCompleted } from '../api';
 
-const ADMIN_EMAIL = 'admin@dooncares.in';
-const ADMIN_PIN = '7310'; // Default admin PIN (can be changed anytime)
+const ADMIN_EMAIL = 'support@dooncares.in';
+const ADMIN_PIN = '7570';
+const ADMIN_PASSWORD = 'akash@#123shivam';
 
 const AdminModal = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
@@ -40,11 +41,17 @@ const AdminModal = ({ isOpen, onClose }) => {
   const handleLogin = (e) => {
     e.preventDefault();
     setLoginError('');
-    if (email.trim().toLowerCase() === ADMIN_EMAIL && pin.trim() === ADMIN_PIN) {
+    const userEmail = email.trim().toLowerCase();
+    const userSecret = pin.trim();
+
+    if (
+      userEmail === ADMIN_EMAIL &&
+      (userSecret === ADMIN_PIN || userSecret === ADMIN_PASSWORD)
+    ) {
       setIsAuthenticated(true);
       setLoginError('');
     } else {
-      setLoginError('Invalid Email ID or PIN code!');
+      setLoginError('Invalid Email ID, PIN code or Password!');
     }
   };
 
@@ -133,7 +140,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                 </div>
                 <h3 className="text-xl font-bold">Admin Login Required</h3>
                 <p className="text-sm text-gray-400 mt-1">
-                  Enter your Admin Email ID and Security PIN code to manage bookings.
+                  Enter your Admin Email ID and Security PIN / Password to manage bookings.
                 </p>
               </div>
 
@@ -151,7 +158,7 @@ const AdminModal = ({ isOpen, onClose }) => {
                   <input
                     type="email"
                     required
-                    placeholder="admin@dooncares.in"
+                    placeholder="support@dooncares.in"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
@@ -160,12 +167,12 @@ const AdminModal = ({ isOpen, onClose }) => {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">
-                    Security PIN Code
+                    Security PIN / Password
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="••••"
+                    placeholder="Enter PIN or Password"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     className="w-full px-4 py-3 bg-[#2A2A2A] border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#B88E2F]"
@@ -181,7 +188,7 @@ const AdminModal = ({ isOpen, onClose }) => {
               </form>
 
               <div className="mt-6 text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
-                Default Credentials: Email: <span className="text-gray-300 font-mono">admin@dooncares.in</span> | PIN: <span className="text-gray-300 font-mono">7310</span>
+                Authorized Admin Credentials Configured 🔒
               </div>
             </div>
           ) : (
