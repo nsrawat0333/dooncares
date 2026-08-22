@@ -1,0 +1,54 @@
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from typing import List
+
+from app.database import engine, Base, get_db
+from app.schemas import BookingCreate, BookingOut, ReviewCreate, ReviewOut
+from app import crud
+
+# Create database tables automatically on startup
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="DoonCares Backend API",
+    description="Python FastAPI & PostgreSQL backend for DoonCares Home Services",
+    version="1.0.0"
+)
+
+# Enable CORS for Netlify frontend and local testing
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Production can restrict to specific Netlify URL if desired
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "online", "service": "DoonCares Backend API"}
+
+# --- Booking Routes ---
+@app.post("/api/bookings", response_model=BookingOut, status_code=status.HTTP_201_CREATED)
+def create_new_booking(booking: BookingCreate, db: Session = Depends(get_db)):
+    if not booking.name or not booking.phone or not booking.date:
+        raise HTTPException(status_code=400, detail="Name, Phone, and Date are required.")
+    return crud.create_booking(db=db, booking_data=booking)
+
+@app.get("/api/bookings", response_model=List[BookingOut])
+def list_bookings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_bookings(db=db, skip=skip, limit=limit)
+
+# --- Review Routes ---
+@app.post("/api/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
+def create_new_review(review: ReviewCreate, db: Session = Depends(get_db)):
+    if not review.name or not review.comment:
+        raise HTTPException(status_code=400, detail="Name and Comment are required.")
+    if review.rating < 1 or review.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
+    return crud.create_review(db=db, review_data=review)
+
+@app.get("/api/reviews", response_model=List[ReviewOut])
+def list_reviews(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_reviews(db=db, skip=skip, limit=limit)

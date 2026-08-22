@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .furniro-card {
+    background: #FFFFFF;
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #F9F1E7;
+  }
+
+  .furniro-banner {
+    background: #FFF3E3;
+    border-radius: 1.5rem;
+    border: 1px solid #F9F1E7;
+  }
+
+  .gold-gradient-btn {
+    background: #B88E2F;
+    color: #FFFFFF;
+    transition: background 0.2s ease;
+  }
+  .gold-gradient-btn:hover {
+    background: #9E7724;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FCF8F3;
+}
+::-webkit-scrollbar-thumb {
+  background: #B88E2F;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9E7724;
+}
