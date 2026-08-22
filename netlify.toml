@@ -7,6 +7,13 @@
   NODE_VERSION = "20"
   VITE_BACKEND_URL = "https://dooncares.onrender.com"
 
+# 301 Permanent Redirect: Remove /index.html from Google Search URLs
+[[redirects]]
+  from = "/index.html"
+  to = "/"
+  status = 301
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
