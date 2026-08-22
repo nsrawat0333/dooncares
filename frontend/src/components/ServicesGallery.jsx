@@ -9,7 +9,7 @@ const getGalleryCategories = (lang) => {
       id: 'carwash',
       title: isHi ? 'डोरस्टेप कार वाशिंग एवं ऑटो डिटेलिंग' : 'Car Washing & Auto Detailing',
       category: isHi ? 'कार वाशिंग' : 'Doorstep Car Wash',
-      coverImage: '/assets/imag/IMG-20260609-WA0039.jpg.jpeg',
+      coverImage: '/assets/akash_deep_clean.png',
       description: isHi ? 'प्रेशर फोम वाशिंग, इंटीरियर वैक्यूमिंग, डैशबोर्ड पॉलिश और टायर शाइनिंग आपके घर पर।' : 'Pressure foam washing, interior vacuuming, dashboard polish, and tire glossing at your doorstep.',
       video: '/assets/deep_video.mp4',
       photos: [
@@ -24,7 +24,7 @@ const getGalleryCategories = (lang) => {
       id: 'sofa',
       title: isHi ? 'सोफा व कुशन डीप क्लीनिंग' : 'Sofa & Upholstery Deep Cleaning',
       category: isHi ? 'सोफा सफाई' : 'Sofa Cleaning',
-      coverImage: '/assets/imag/IMG-20260430-WA0011.jpg.jpeg',
+      coverImage: '/assets/sofa_1.png',
       description: isHi ? 'सोफा सेट, रिक्लाइनर और गद्दों की वाटर एक्सट्रैक्शन, शैम्पूइंग और दाग-धब्बे सफाई।' : 'Deep extraction, shampooing & stain removal for sofa sets, recliners, and mattresses.',
       video: '/assets/sofa_video.mp4',
       photos: [
@@ -40,7 +40,7 @@ const getGalleryCategories = (lang) => {
       id: 'plumbing_electrical',
       title: isHi ? 'प्लंबिंग एवं इलेक्ट्रिकल मरम्मत' : 'Plumbing & Electrical',
       category: isHi ? 'मेंटेनेंस व रिपेयर' : 'Maintenance & Repairs',
-      coverImage: '/assets/imag/IMG-20260430-WA0068.jpg.jpeg',
+      coverImage: '/assets/akash_plumbing_clean.png',
       description: isHi ? 'सत्यापित प्लंबिंग मरम्मत, लीक फिक्सिंग, इलेक्ट्रिकल शॉर्ट-सर्किट रिपेयर और होम वायरिंग।' : 'Certified plumbing repairs, leak fixes, certified electrical troubleshooting, and appliance installations.',
       video: '/assets/electrical_video.mp4',
       photos: [
@@ -83,7 +83,7 @@ const getGalleryCategories = (lang) => {
       id: 'deep',
       title: isHi ? 'पूरे घर की डीप क्लीनिंग व सैनिटाइजेशन' : 'Full House Deep Cleaning & Sanitization',
       category: isHi ? 'डीप क्लीनिंग' : 'Deep Cleaning',
-      coverImage: '/assets/imag/IMG-20260430-WA0060.jpg.jpeg',
+      coverImage: '/assets/deep_1.png',
       description: isHi ? 'संपूर्ण 360-डिग्री घर की सफाई, फर्श पॉलिशिंग, और खिड़की-बालकनी धुलाई।' : 'Complete 360-degree house deep cleaning, floor polishing, and window sanitization.',
       video: '/assets/deep_video.mp4',
       photos: [
@@ -99,7 +99,7 @@ const getGalleryCategories = (lang) => {
       id: 'kitchen',
       title: isHi ? 'किचन डीग्रीसिंग व ऑयल क्लीनिंग' : 'Kitchen Degreasing & Oil Clean',
       category: isHi ? 'किचन सफाई' : 'Kitchen Deep Clean',
-      coverImage: '/assets/imag/IMG-20260430-WA0087.jpg.jpeg',
+      coverImage: '/assets/kitchen_deep_clean_1.png',
       description: isHi ? 'जिद्दी तेल व ग्रीस की सफाई, चिमनी क्लीनिंग, दीवार टाइल स्क्रबिंग और उपकरण पॉलिश।' : 'Tough oil grease removal, chimney cleaning, wall tile scrubbing, and appliance polish.',
       video: '/assets/kitchen_video.mp4',
       photos: [
