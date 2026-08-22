@@ -41,9 +41,12 @@ const ReviewsSection = ({ lang }) => {
     const loadReviews = async () => {
       try {
         const data = await fetchReviews();
-        if (data && data.length > 0) {
-          const combined = [...data, ...initialMockReviews];
-          setReviews(combined);
+        if (Array.isArray(data) && data.length > 0) {
+          // Filter out invalid items
+          const validFetched = data.filter(item => item && typeof item === 'object' && item.name);
+          if (validFetched.length > 0) {
+            setReviews([...validFetched, ...initialMockReviews]);
+          }
         }
       } catch (err) {
         console.warn('Backend reviews offline or connecting:', err.message);
@@ -111,30 +114,39 @@ const ReviewsSection = ({ lang }) => {
           </h3>
 
           <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-            {reviews.map((rev) => (
-              <div key={rev.id} className="bg-white p-6 rounded-2xl border border-[#F9F1E7] shadow-sm hover:shadow-md transition-shadow space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#FFF3E3] text-[#B88E2F] border border-[#B88E2F]/30 flex items-center justify-center font-extrabold text-base">
-                      {rev.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 className="text-[#333333] font-bold text-sm flex items-center gap-1.5">
-                        <span>{rev.name}</span>
-                        <UserCheck className="w-4 h-4 text-[#B88E2F]" title="Verified Customer" />
-                      </h4>
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        {new Date(rev.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </span>
+            {reviews.map((rev) => {
+              const nameStr = rev && rev.name ? String(rev.name) : 'Customer';
+              const firstChar = nameStr.charAt(0).toUpperCase() || 'C';
+              const createdDate = rev && rev.created_at ? new Date(rev.created_at) : new Date();
+              const dateStr = !isNaN(createdDate.getTime()) 
+                ? createdDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                : 'Recently';
+
+              return (
+                <div key={rev.id || Math.random()} className="bg-white p-6 rounded-2xl border border-[#F9F1E7] shadow-sm hover:shadow-md transition-shadow space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#FFF3E3] text-[#B88E2F] border border-[#B88E2F]/30 flex items-center justify-center font-extrabold text-base">
+                        {firstChar}
+                      </div>
+                      <div>
+                        <h4 className="text-[#333333] font-bold text-sm flex items-center gap-1.5">
+                          <span>{nameStr}</span>
+                          <UserCheck className="w-4 h-4 text-[#B88E2F]" title="Verified Customer" />
+                        </h4>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {dateStr}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <p className="text-slate-700 text-sm font-medium leading-relaxed">
-                  "{rev.comment}"
-                </p>
-              </div>
-            ))}
+                  <p className="text-slate-700 text-sm font-medium leading-relaxed">
+                    "{rev.comment || 'Great service quality!'}"
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -175,7 +187,7 @@ const ReviewsSection = ({ lang }) => {
                   onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
                   placeholder={isHi ? "उदा. अंजलि शर्मा" : "e.g. Anjali Sharma"}
                   required
-                  className="w-full bg-white border border-[#B88E2F]/40 rounded-xl py-3 px-4 text-[#333333] text-sm font-semibold placeholder-slate-400 focus:outline-none focus:border-[#B88E2F] shadow-sm transition-all"
+                  className="w-full bg-[#FCF8F3] border border-[#B88E2F]/40 rounded-xl py-3 px-4 text-[#333333] text-sm font-semibold placeholder-slate-400 focus:outline-none focus:border-[#B88E2F] shadow-sm transition-all"
                 />
               </div>
 
@@ -188,7 +200,7 @@ const ReviewsSection = ({ lang }) => {
                   onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                   placeholder={isHi ? "सफाई की गुणवत्ता, समय पर आगमन और स्टाफ के बारे में बताएं..." : "Tell us about the cleaning quality, punctuality, and staff..."}
                   required
-                  className="w-full bg-white border border-[#B88E2F]/40 rounded-xl py-3 px-4 text-[#333333] text-sm font-semibold placeholder-slate-400 focus:outline-none focus:border-[#B88E2F] shadow-sm transition-all"
+                  className="w-full bg-[#FCF8F3] border border-[#B88E2F]/40 rounded-xl py-3 px-4 text-[#333333] text-sm font-semibold placeholder-slate-400 focus:outline-none focus:border-[#B88E2F] shadow-sm transition-all"
                 />
               </div>
 
