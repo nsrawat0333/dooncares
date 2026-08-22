@@ -56,7 +56,7 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
               href="https://www.facebook.com/profile.php?id=100042846282350"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-bold mr-2"
+              className="text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 font-bold"
               title="Follow DoonCares on Facebook"
             >
               <Facebook className="w-4 h-4" />
@@ -65,11 +65,11 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
           </div>
 
           {/* Actions: Call & Book Button + Language Switcher Toggle */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 sm:gap-3.5 ml-auto">
             {/* Language Switcher Desktop */}
             <button
               onClick={() => setLang(lang === 'EN' ? 'HI' : 'EN')}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#B88E2F] font-black text-xs border border-[#B88E2F]/40 flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#B88E2F] font-black text-xs border border-[#B88E2F]/40 flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap ml-4 sm:ml-6"
               title="Switch Language / भाषा बदलें"
             >
               <Globe className="w-4 h-4" />
