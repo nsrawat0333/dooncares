@@ -21,6 +21,23 @@ def create_booking(db: Session, booking_data: BookingCreate):
 def get_bookings(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Booking).order_by(Booking.created_at.desc()).offset(skip).limit(limit).all()
 
+def delete_booking(db: Session, booking_id: int):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if booking:
+        db.delete(booking)
+        db.commit()
+        return True
+    return False
+
+def update_booking_status(db: Session, booking_id: int, status_str: str):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if booking:
+        booking.status = status_str
+        db.commit()
+        db.refresh(booking)
+        return booking
+    return None
+
 def create_review(db: Session, review_data: ReviewCreate):
     db_review = Review(
         name=review_data.name,

@@ -46,6 +46,22 @@ def create_new_booking(booking: BookingCreate, db: Session = Depends(get_db)):
 def list_bookings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_bookings(db=db, skip=skip, limit=limit)
 
+@app.delete("/api/bookings/{booking_id}")
+@app.delete("/bookings/{booking_id}")
+def delete_existing_booking(booking_id: int, db: Session = Depends(get_db)):
+    success = crud.delete_booking(db=db, booking_id=booking_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Booking not found.")
+    return {"status": "success", "message": f"Booking ID {booking_id} deleted successfully."}
+
+@app.put("/api/bookings/{booking_id}/complete")
+@app.put("/bookings/{booking_id}/complete")
+def mark_booking_completed(booking_id: int, db: Session = Depends(get_db)):
+    updated = crud.update_booking_status(db=db, booking_id=booking_id, status_str="Completed")
+    if not updated:
+        raise HTTPException(status_code=404, detail="Booking not found.")
+    return {"status": "success", "message": f"Booking ID {booking_id} status updated to Completed.", "booking": updated}
+
 # --- Review Routes ---
 @app.post("/api/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
 @app.post("/reviews", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
