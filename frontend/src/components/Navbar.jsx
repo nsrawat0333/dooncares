@@ -12,8 +12,8 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
         <div className="flex items-center justify-between h-20">
           
           {/* Logo with 3D Shield Emblem */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform border-2 border-[#B88E2F]/40 bg-white flex-shrink-0">
+          <a href="#" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform border-2 border-[#B88E2F]/40 bg-white flex-shrink-0">
               <img
                 src="/logo.png"
                 alt="DoonCares Logo"
@@ -21,18 +21,18 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
               />
             </div>
             <div>
-              <span className="text-xl sm:text-2xl font-black tracking-tight text-[#333333] uppercase font-sans">
+              <span className="text-lg sm:text-2xl font-black tracking-tight text-[#333333] uppercase font-sans">
                 Doon<span className="text-[#B88E2F]">Cares</span>
               </span>
-              <span className="block text-[9px] uppercase tracking-widest text-[#B88E2F] font-bold -mt-1 flex items-center gap-1">
+              <span className="block text-[8px] sm:text-[9px] uppercase tracking-widest text-[#B88E2F] font-bold -mt-1 flex items-center gap-0.5">
                 <ShieldCheck className="w-2.5 h-2.5 text-[#B88E2F]" />
-                <span>DEHRADUN • Luxury House & Car Wash Solution</span>
+                <span>DEHRADUN • House & Car Wash</span>
               </span>
             </div>
           </a>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-[#333333]">
+          <div className="hidden lg:flex items-center gap-5 text-sm font-semibold text-[#333333]">
             <a href="#hero" className="hover:text-[#B88E2F] transition-colors">{t.home}</a>
             <a href="#services" className="hover:text-[#B88E2F] transition-colors">{t.services}</a>
             <a href="#gallery" className="hover:text-[#B88E2F] transition-colors">{t.gallery}</a>
@@ -44,7 +44,7 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
               href="https://www.instagram.com/dooncares.in/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-pink-600 hover:text-pink-700 transition-colors flex items-center gap-1 font-bold"
+              className="text-pink-600 hover:text-pink-700 transition-colors flex items-center gap-1 font-bold ml-1"
               title="Follow DoonCares on Instagram"
             >
               <Instagram className="w-4 h-4" />
@@ -64,28 +64,39 @@ const Navbar = ({ onBookClick, lang, setLang }) => {
             </a>
           </div>
 
-          {/* Actions: Call & Book Button + Lang Toggle */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Actions: Call & Book Button + Language Switcher Toggle */}
+          <div className="hidden md:flex items-center gap-2.5">
+            {/* Language Switcher Desktop */}
+            <button
+              onClick={() => setLang(lang === 'EN' ? 'HI' : 'EN')}
+              className="px-3 py-2 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#B88E2F] font-black text-xs border border-[#B88E2F]/40 flex items-center gap-1.5 shadow-sm transition-all whitespace-nowrap"
+              title="Switch Language / भाषा बदलें"
+            >
+              <Globe className="w-4 h-4" />
+              <span>{lang === 'EN' ? 'हिंदी' : 'EN'}</span>
+            </button>
+
+            {/* Call Us Button */}
             <a
               href="tel:+917310502324"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#333333] text-sm font-extrabold border border-[#B88E2F]/40 shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FFF3E3] text-[#333333] text-xs font-extrabold border border-[#B88E2F]/40 shadow-sm transition-all whitespace-nowrap"
             >
-              <PhoneCall className="w-4 h-4 text-[#B88E2F]" />
+              <PhoneCall className="w-3.5 h-3.5 text-[#B88E2F]" />
               <span>{t.callUs}</span>
             </a>
 
+            {/* Book Now Button */}
             <button
               onClick={onBookClick}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl gold-gradient-btn font-extrabold text-sm shadow-md transition-all hover:scale-105"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl gold-gradient-btn font-extrabold text-xs shadow-md transition-all hover:scale-105 whitespace-nowrap"
             >
-              <CalendarCheck className="w-4 h-4" />
+              <CalendarCheck className="w-3.5 h-3.5" />
               <span>{t.bookNow}</span>
             </button>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
-            
             {/* Language Toggle Mobile */}
             <button
               onClick={() => setLang(lang === 'EN' ? 'HI' : 'EN')}
