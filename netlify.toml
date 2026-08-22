@@ -1,7 +1,11 @@
 [build]
   base = "frontend"
-  publish = "dist"
   command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  VITE_BACKEND_URL = "https://dooncares.onrender.com"
 
 [[redirects]]
   from = "/*"

@@ -2,15 +2,15 @@ import axios from 'axios';
 
 // Dynamic API Base URL detection:
 // 1. Reads from VITE_BACKEND_URL environment variable if set.
-// 2. Uses relative '/api' for proxy / rewrite compatibility.
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '/api';
+// 2. Fallbacks to live Render production backend URL: https://dooncares.onrender.com
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://dooncares.onrender.com';
 
 const api = axios.create({
   baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 8000
+  timeout: 10000
 });
 
 export const createBooking = async (bookingData) => {
